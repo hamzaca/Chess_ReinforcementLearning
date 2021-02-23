@@ -1,4 +1,5 @@
-from Chess import Grid, Player
+from chess.Grid_Pieces import Grid
+from chess import Player
 import numpy as np
 
 class Game():

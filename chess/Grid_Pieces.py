@@ -1,9 +1,6 @@
 import abc
 
-
 ################### Interface for Pieces ####################
-
-
 class PieceInterface(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def possible_moves(self):
@@ -14,7 +11,7 @@ class PieceInterface(metaclass=abc.ABCMeta):
     def get_current_position(self):
         raise NotImplemented
 
-    @aabc.bstractmethod
+    @abc.abstractmethod
     def get_color(self):
         raise NotImplemented
 
@@ -23,24 +20,21 @@ class PieceInterface(metaclass=abc.ABCMeta):
 
 class Cell:
 
-    y_possible_positions = [0,1, 2, 3, 4, 5, 6, 7]
-    x_possible_positions = [0, 1, 2, 3, 4, 5, 6, 7]
-
-    def __init__(self, x: str, y: int, is_first_move: bool):
+    def __init__(self, x: str, y: int):
         if self.x_does_exist(x):
             self.x = x
         if self.y_does_exist(y):
             self.y = y
-        self.is_first_move = is_first_move
+        self.is_first_move = True
 
     @staticmethod
     def y_does_exist(y):
-        global y_possible_positions
-        return y in y_possible_positions
+        possible_positions = [0,1, 2, 3, 4, 5, 6, 7]
+        return y in possible_positions
     @staticmethod
-    def x_does_exist(y):
-        global x_possible_positions
-        return x in x_possible_positions
+    def x_does_exist(x):
+        possible_positions = [0,1, 2, 3, 4, 5, 6, 7]
+        return x in possible_positions
 
     def set_is_first_move_to_false(self):
         self.is_first_move = False
@@ -69,8 +63,8 @@ class Cell:
 ################################ The Pawn  #################################
 
 class Pawn(Cell, PieceInterface):
-    def __init__(self,x,y, black_or_white,is_first_move):
-        super().__init__(self,x,y,is_first_move)
+    def __init__(self, x, y, black_or_white):
+        super().__init__(x, y)
         self.black_or_white = black_or_white
         # when the pawn is created, he didn't move yet so it's true.
 
@@ -92,7 +86,7 @@ class Pawn(Cell, PieceInterface):
                     possible_targets.append([self.x - 1, self.y + 1])
                 # if not the pawn in the far right of Grid, the pawn can capture.
                 if self.x != 7:
-                possible_targets.append([self.x + 1, self.y + 1])
+                    possible_targets.append([self.x + 1, self.y + 1])
 
             # Not the first move.
             else:
@@ -117,7 +111,7 @@ class Pawn(Cell, PieceInterface):
                     possible_targets.append([self.x - 1, self.y - 1])
                 # if not the pawn in the far right of Grid, the pawn can capture.
                 if self.x != 7:
-                possible_targets.append([self.x + 1, self.y - 1])
+                    possible_targets.append([self.x + 1, self.y - 1])
             # Not the first move
             else:
                 possible_targets.append([self.x, self.y - 1])
@@ -142,7 +136,7 @@ class Pawn(Cell, PieceInterface):
 
 class Bishop(Cell, PieceInterface):
     def __init__(self,x,y, black_or_white):
-        super().__init__(self,x,y )
+        super().__init__(x,y)
         self.black_or_white = black_or_white
 
     def get_color(self):
@@ -181,7 +175,7 @@ class Bishop(Cell, PieceInterface):
 
 class Knight(Cell, PieceInterface):
     def __init__(self,x,y, black_or_white):
-        super().__init__(self,x,y )
+        super().__init__(x,y)
         self.black_or_white = black_or_white
 
 
@@ -203,7 +197,7 @@ class Knight(Cell, PieceInterface):
 
 class Rock(Cell, PieceInterface):
     def __init__(self,x,y, black_or_white):
-        super().__init__(self,x,y )
+        super().__init__(x,y)
         self.black_or_white = black_or_white
 
     def get_color(self):
@@ -233,7 +227,7 @@ class Rock(Cell, PieceInterface):
 class Queen(Cell, PieceInterface):
 
     def __init__(self,x,y, black_or_white):
-        super().__init__(self,x,y )
+        super().__init__(x,y)
         self.black_or_white = black_or_white
 
     def get_color(self):
@@ -241,7 +235,7 @@ class Queen(Cell, PieceInterface):
 
     def possible_moves(self):
         """ Return a list of the possible general  moves of the piece.
-        :return  :  matrix of the possible move for the bishop. each line is a possible move.
+        :return  :  matrix of the possible move for the queen. each line is a possible move.
         """
         possible_targets = []
         ## The bishop like movements.
@@ -277,22 +271,52 @@ class Queen(Cell, PieceInterface):
 class King(Cell, PieceInterface):
 
     def __init__(self,x,y, black_or_white):
-        super().__init__(self,x,y )
+        super().__init__(x,y)
         self.black_or_white = black_or_white
 
     def get_color(self):
         return self.black_or_white
 
     def possible_moves(self):
-        pass
+        """ Return a list of the possible general  moves of the piece.
+        :return  :  matrix of the possible move for the knight. each line is a possible move.
+        """
+        possible_targets = []
+        x_y_possible_values=[0,1,2,3,4,5,6,7]
+        if self.x + 2 in x_y_possible_values:
+            if self.y+1 in x_y_possible_values:
+                possible_targets.append([self.x+2, self.y+1])
+            if self.y - 1 in x_y_possible_values:
+                possible_targets.append([self.x + 2, self.y - 1])
+
+        if self.x - 2 in x_y_possible_values:
+            if self.y+1 in x_y_possible_values:
+                possible_targets.append([self.x-2, self.y + 1])
+            if self.y - 1 in x_y_possible_values:
+                possible_targets.append([self.x-2, self.y - 1])
+
+        if self.y + 2 in x_y_possible_values:
+            if self.x + 1 in x_y_possible_values:
+                possible_targets.append([self.x + 1, self.y + 2])
+            if self.x - 1 in x_y_possible_values:
+                possible_targets.append([self.x - 1, self.y + 2])
+
+        if self.y - 2 in x_y_possible_values:
+            if self.x + 1 in x_y_possible_values:
+                possible_targets.append([self.x + 1, self.y - 2])
+            if self.x - 1 in x_y_possible_values:
+                possible_targets.append([self.x - 1, self.y - 2])
+
+        return possible_targets
 
     def get_current_position(self):
         pass
 
+
 class EmptyCell(Cell) :
 
     def __init__(self,x,y):
-        super().__init__(self,x,y)
+        super().__init__(x,y)
 
 
 ##################################################### Cell and Grid ########################################################

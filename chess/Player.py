@@ -1,12 +1,15 @@
-from Chess.Grid_Pieces import Grid
-from Chess.Grid_Pieces import Pawn, Rock, Bishop, Knight, Queen, King, EmptyCell
+from chess.Grid_Pieces import Grid
+from chess.Grid_Pieces import Pawn, Rock, Bishop, Knight, Queen, King, EmptyCell
 
 class Player():
 
-    def __init__(self, name:str, color_player:str,grid:Grid):
+    def __init__(self, grid: Grid, name: str, color_player: str):
         self.name = name
         self.color_player = color_player
         self.grid = grid
+
+    def get_name(self):
+        return self.name
 
     def get_color(self):
         return self.color_player
