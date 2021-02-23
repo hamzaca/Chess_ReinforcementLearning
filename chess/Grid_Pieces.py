@@ -1,6 +1,9 @@
-##################################################### Interface for Pieces ########################################################
-
 import abc
+
+
+################### Interface for Pieces ####################
+
+
 class PieceInterface(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def possible_moves(self):
@@ -18,16 +21,18 @@ class PieceInterface(metaclass=abc.ABCMeta):
 
 ####################################### Class Cell - all piece inherite from this class  ########################################################
 
-class Cell():
+class Cell:
 
     y_possible_positions = [0,1, 2, 3, 4, 5, 6, 7]
     x_possible_positions = [0, 1, 2, 3, 4, 5, 6, 7]
 
-    def __init__(self, x : str, y : int):
+    def __init__(self, x: str, y: int, is_first_move: bool):
         if self.x_does_exist(x):
             self.x = x
         if self.y_does_exist(y):
             self.y = y
+        self.is_first_move = is_first_move
+
     @staticmethod
     def y_does_exist(y):
         global y_possible_positions
@@ -37,6 +42,17 @@ class Cell():
         global x_possible_positions
         return x in x_possible_positions
 
+    def set_is_first_move_to_false(self):
+        self.is_first_move = False
+
+    def set_position(self, x_destina, y_destina):
+        """ Set the piece to a new position."""
+        self.x = x_destina
+        self.y = y_destina
+        # when the piece is moved set the first movement to false.
+        if self.is_first_move:
+            self.set_is_first_move_to_false()
+
     def get_x(self):
         return self.x
 
@@ -45,32 +61,86 @@ class Cell():
 
     def is_empty(self):
         pass
+
     def occupant(self):
         """ return the  piece in the cell"""
         pass
 
 ################################ The Pawn  #################################
 
-class Pawn(Cell):
-    def __init__(self,x,y, black_or_white):
-        super().__init__(self,x,y )
+class Pawn(Cell, PieceInterface):
+    def __init__(self,x,y, black_or_white,is_first_move):
+        super().__init__(self,x,y,is_first_move)
         self.black_or_white = black_or_white
+        # when the pawn is created, he didn't move yet so it's true.
 
     def get_color(self):
         return self.black_or_white
 
     def possible_moves(self):
-        pass
+        """ Return a list of the possible general  moves of the piece.
+        :return  :  matrix of the possible move for the pawn. eaxh line is a possible move.
+        """
+        possible_targets = []
+        if self.black_or_white == "white":
+            if self.is_first_move:
+                possible_targets.append([self.x, self.y + 1])
+                possible_targets.append([self.x, self.y + 2])
+                # Capture to left or right
+                # if not the pawn in the far lest of Grid, the pawn can capture.
+                if self.x != 0:
+                    possible_targets.append([self.x - 1, self.y + 1])
+                # if not the pawn in the far right of Grid, the pawn can capture.
+                if self.x != 7:
+                possible_targets.append([self.x + 1, self.y + 1])
+
+            # Not the first move.
+            else:
+                possible_targets.append([self.x, self.y + 1])
+                # Capture to left or right
+                # if not the pawn in the far lest of Grid, the pawn can capture.
+                if self.x != 0:
+                    possible_targets.append([self.x - 1, self.y + 1])
+                # if not the pawn in the far right of Grid, the pawn can capture.
+                if self.x != 7:
+                    possible_targets.append([self.x + 1, self.y + 1])
+
+
+        # when it's the black pawn.
+        else:
+            if self.is_first_move:
+                possible_targets.append([self.x, self.y - 1])
+                possible_targets.append([self.x, self.y - 2])
+                # Capture to left or right
+                # if not the pawn in the far lest of Grid, the pawn can capture.
+                if self.x != 0:
+                    possible_targets.append([self.x - 1, self.y - 1])
+                # if not the pawn in the far right of Grid, the pawn can capture.
+                if self.x != 7:
+                possible_targets.append([self.x + 1, self.y - 1])
+            # Not the first move
+            else:
+                possible_targets.append([self.x, self.y - 1])
+                # Capture to left or right
+                # if not the pawn in the far lest of Grid, the pawn can capture.
+                if self.x != 0:
+                    possible_targets.append([self.x - 1, self.y - 1])
+                # if not the pawn in the far right of Grid, the pawn can capture.
+                if self.x != 7:
+                    possible_targets.append([self.x + 1, self.y - 1])
+
+        return possible_targets
+
+
+
+
     def get_current_position(self):
         pass
 
-    def is_first_move(self):
-        """  Return True if the Pawn is not moved yet. Flase else"""
-        pass
 
 ################################ The Bishop  #################################
 
-class Bishop(Cell):
+class Bishop(Cell, PieceInterface):
     def __init__(self,x,y, black_or_white):
         super().__init__(self,x,y )
         self.black_or_white = black_or_white
@@ -79,7 +149,29 @@ class Bishop(Cell):
         return self.black_or_white
 
     def possible_moves(self):
-        pass
+        """ Return a list of the possible general  moves of the piece.
+        :return  :  matrix of the possible move for the bishop. each line is a possible move.
+        """
+        possible_targets = []
+        # bihsop's movement are according two lines. y = ax + b. with a = 1 for the first one and a = -1 for the second.
+        # the value of b depends on the bishop  initial position.
+        # compute b1 and b2
+        b1 = self.y - self.x
+        b2 = self.y + self.x
+        x_y_possible_values=[0,1,2,3,4,5,6,7]
+        # for each x compute the correspondant y value that are in the lines of the bishop's movement.
+        # check they are  integers among 0 and 7.
+        for x_value in x_y_possible_values:
+            y1 = x_value + b1
+            y2 = -x_value + b2
+            if y1 in x_y_possible_values:
+                possible_targets.append([x_value, y1])
+            if y2 in x_y_possible_values:
+                possible_targets.append([x_value, y2])
+        return possible_targets
+
+
+
 
     def get_current_position(self):
         pass
@@ -87,7 +179,7 @@ class Bishop(Cell):
 
 ################################ The Knight  #################################
 
-class Knight(Cell):
+class Knight(Cell, PieceInterface):
     def __init__(self,x,y, black_or_white):
         super().__init__(self,x,y )
         self.black_or_white = black_or_white
@@ -97,6 +189,10 @@ class Knight(Cell):
         return self.black_or_white
 
     def possible_moves(self):
+        """ Return a list of the possible general  moves of the piece.
+        :return  :  matrix of the possible move for the bishop. each line is a possible move.
+        """
+        possible_targets = []
         pass
 
     def get_current_position(self):
@@ -105,7 +201,7 @@ class Knight(Cell):
 ################################ The Rock  #################################
 
 
-class Rock(Cell):
+class Rock(Cell, PieceInterface):
     def __init__(self,x,y, black_or_white):
         super().__init__(self,x,y )
         self.black_or_white = black_or_white
@@ -114,7 +210,19 @@ class Rock(Cell):
         return self.black_or_white
 
     def possible_moves(self):
-        pass
+        """ Return a list of the possible general  moves of the piece.
+        :return  :  matrix of the possible move for the bishop. each line is a possible move.
+        """
+        possible_targets = []
+        for value in range(8):
+            # vertical movement.
+            if value != self.y:
+                possible_targets.append([self.x, value])
+            # horizontal movement.
+            if value != self.x:
+                possible_targets.append([value, self.y])
+        return possible_targets
+
 
     def get_current_position(self):
         pass
@@ -122,7 +230,8 @@ class Rock(Cell):
 ################################ The Queen  #################################
 
 
-class Queen(Cell):
+class Queen(Cell, PieceInterface):
+
     def __init__(self,x,y, black_or_white):
         super().__init__(self,x,y )
         self.black_or_white = black_or_white
@@ -131,7 +240,32 @@ class Queen(Cell):
         return self.black_or_white
 
     def possible_moves(self):
-        pass
+        """ Return a list of the possible general  moves of the piece.
+        :return  :  matrix of the possible move for the bishop. each line is a possible move.
+        """
+        possible_targets = []
+        ## The bishop like movements.
+        b1 = self.y - self.x
+        b2 = self.y + self.x
+        x_y_possible_values=[0,1,2,3,4,5,6,7]
+        # for each x compute the correspondant y value that are in the lines of the bishop's movement.
+        # check they are  integers among 0 and 7.
+        for x_value in x_y_possible_values:
+            y1 = x_value + b1
+            y2 = -x_value + b2
+            if y1 in x_y_possible_values:
+                possible_targets.append([x_value, y1])
+            if y2 in x_y_possible_values:
+                possible_targets.append([x_value, y2])
+        ## add the rock like movement.
+        for value in range(8):
+            # vertical movement.
+            if value != self.y:
+                possible_targets.append([self.x, value])
+            # horizontal movement.
+            if value != self.x:
+                possible_targets.append([value, self.y])
+        return possible_targets
 
     def get_current_position(self):
         pass
@@ -140,7 +274,7 @@ class Queen(Cell):
 ################################ The King  #################################
 
 
-class King(Cell):
+class King(Cell, PieceInterface):
 
     def __init__(self,x,y, black_or_white):
         super().__init__(self,x,y )
@@ -163,7 +297,7 @@ class EmptyCell(Cell) :
 
 ##################################################### Cell and Grid ########################################################
 
-class Grid():
+class Grid:
     # The Grid is Matrix of 8x8 of Cells.
     def __init__(self, color_player1: str, color_player2: str ):
         self.color_player1 = color_player1

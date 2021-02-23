@@ -10,14 +10,23 @@ class Player():
 
     def get_color(self):
         return self.color_player
-    ### This method move a piece from the current position to a target.
+
     def move_piece(self,x_current, y_current, x_goal,y_goal):
-        """Move the pawn to the position (x_goal,y_goal)"""
+        """This method move a piece from the current position to a target (x_goal,y_goal)
+        :parameter
+            -  x_current :
+            - y_current  :
+            - x_goal     :
+            - y_goal     :
+
+        """
         piece = self.grid.get_piece(x_current, y_current)
         # check if it's a piece, not an empty cell.
         if not isinstance(piece, EmptyCell):
             target_cell = self.grid[y_goal][x_goal]
             if isinstance(target_cell, EmptyCell):
+                # set the internal position of the piece to the goal coordinates.
+                piece.set_position( x_destina=x_goal, y_destina=y_goal)
                 self.grid[y_goal][x_goal] = piece
                 self.grid[y_current][x_current] = EmptyCell(x=x_current, y=y_current )
             else:
