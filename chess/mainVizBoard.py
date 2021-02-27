@@ -24,7 +24,8 @@ images = load_pieces_icons()
 
 def draw_only_board(screen):
     """ draw the screen according to the chosen dimensions."""
-    colors = [pygame.Color("white"), pygame.Color("grey")]
+
+    colors = [pygame.Color( 100, 100, 100, 100), pygame.Color(230, 230, 230, 255)]
     for x in range(nb_squares):
         for y in range(nb_squares):
             color = colors[(x + y) % 2]

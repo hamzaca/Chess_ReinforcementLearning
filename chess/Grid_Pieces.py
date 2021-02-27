@@ -417,7 +417,7 @@ class EmptyCell(Cell):
 
 class Grid:
     # The Grid is Matrix of 8x8 of Cells.
-    def __init__(self, color_player1: str, color_player2: str ):
+    def __init__(self, color_player1: str, color_player2: str):
         self.color_player1 = color_player1
         self.color_player2 = color_player2
         # initialiaze Grid to the .

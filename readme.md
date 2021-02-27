@@ -1,11 +1,12 @@
 ## Chess Game.
 
-The game of chess, two players play.
-later on one player is an other chess engine
+The board of the game created using `pygame`.
 
+![](images/chess_board.png)
 
 ## Chess Engine through reinforcement Learning.
 Chess and Learning how to play throught reinforcement learning.
 
 an other chess engine is used to train ours.
 
+ 
