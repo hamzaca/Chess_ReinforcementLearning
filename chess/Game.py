@@ -14,7 +14,12 @@ class Game():
         # initialize Grid to the know position
         self.player1 = Player()
         self.player2 = Player()
-        self.grid = Grid(self.player1 , self.player2)
+        self.grid = Grid(self.player1, self.player2)
+        # white starts.
+        self.black_to_play = False
+        # store the log of the game step by step.
+        self.history = []
+
 
     @staticmethod
     def choose_player2_color(player1_color):

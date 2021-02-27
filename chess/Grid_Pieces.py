@@ -1,6 +1,8 @@
 import abc
 
 ################### Interface for Pieces ####################
+
+
 class PieceInterface():
     @abc.abstractmethod
     def possible_moves(self):
@@ -13,6 +15,10 @@ class PieceInterface():
 
     @abc.abstractmethod
     def get_color(self):
+        raise NotImplemented
+
+    @abc.abstractmethod
+    def get_name(self):
         raise NotImplemented
 
 
@@ -127,10 +133,18 @@ class Pawn(Cell, PieceInterface):
         return possible_targets
 
 
-
-
     def get_current_position(self):
         pass
+
+    def get_name(self):
+        return "Pawn"
+
+    def get_color(self):
+        return self.black_or_white
+
+    @property
+    def __repr__(self):
+        return "Pawn(x={}, y={}, color = {})".format(self.x, self.y, self.black_or_white)
 
 
 ################################ The Bishop  #################################
@@ -171,6 +185,17 @@ class Bishop(Cell, PieceInterface):
     def get_current_position(self):
         pass
 
+    def get_name(self):
+        return "Bishop"
+
+    def get_color(self):
+        return self.black_or_white
+
+
+    @property
+    def __repr__(self):
+        return "Bishop(x={}, y={}, color = {})".format(self.x, self.y, self.black_or_white)
+
 
 ################################ The Knight  #################################
 
@@ -185,13 +210,50 @@ class Knight(Cell, PieceInterface):
 
     def possible_moves(self):
         """ Return a list of the possible general  moves of the piece.
-        :return  :  matrix of the possible move for the bishop. each line is a possible move.
+        :return  :  matrix of the possible move for the knight. each line is a possible move.
         """
         possible_targets = []
-        pass
+        x_y_possible_values=[0,1,2,3,4,5,6,7]
+        if self.x + 2 in x_y_possible_values:
+            if self.y+1 in x_y_possible_values:
+                possible_targets.append([self.x+2, self.y+1])
+            if self.y - 1 in x_y_possible_values:
+                possible_targets.append([self.x + 2, self.y - 1])
+
+        if self.x - 2 in x_y_possible_values:
+            if self.y+1 in x_y_possible_values:
+                possible_targets.append([self.x-2, self.y + 1])
+            if self.y - 1 in x_y_possible_values:
+                possible_targets.append([self.x-2, self.y - 1])
+
+        if self.y + 2 in x_y_possible_values:
+            if self.x + 1 in x_y_possible_values:
+                possible_targets.append([self.x + 1, self.y + 2])
+            if self.x - 1 in x_y_possible_values:
+                possible_targets.append([self.x - 1, self.y + 2])
+
+        if self.y - 2 in x_y_possible_values:
+            if self.x + 1 in x_y_possible_values:
+                possible_targets.append([self.x + 1, self.y - 2])
+            if self.x - 1 in x_y_possible_values:
+                possible_targets.append([self.x - 1, self.y - 2])
+
+        return possible_targets
+
+
 
     def get_current_position(self):
         pass
+
+    def get_name(self):
+        return "Knight"
+
+    def get_color(self):
+        return self.black_or_white
+
+    @property
+    def __repr__(self):
+        return "Knight(x={}, y={}, color = {})".format(self.x, self.y, self.black_or_white)
 
 ################################ The Rock  #################################
 
@@ -221,6 +283,16 @@ class Rock(Cell, PieceInterface):
 
     def get_current_position(self):
         pass
+
+    def get_name(self):
+        return "Rock"
+
+    def get_color(self):
+        return self.black_or_white
+
+    @property
+    def __repr__(self):
+        return "Rock(x={}, y={}, color = {})".format(self.x, self.y, self.black_or_white)
 
 ################################ The Queen  #################################
 
@@ -265,6 +337,16 @@ class Queen(Cell, PieceInterface):
     def get_current_position(self):
         pass
 
+    def get_name(self):
+        return "Queen"
+
+    def get_color(self):
+        return self.black_or_white
+
+    @property
+    def __repr__(self):
+        return "Queen(x={}, y={}, color = {})".format(self.x, self.y, self.black_or_white)
+
 
 ################################ The King  #################################
 
@@ -280,44 +362,55 @@ class King(Cell, PieceInterface):
 
     def possible_moves(self):
         """ Return a list of the possible general  moves of the piece.
-        :return  :  matrix of the possible move for the knight. each line is a possible move.
+        :return  :  matrix of the possible move for the king. each line is a possible move.
         """
         possible_targets = []
-        x_y_possible_values=[0,1,2,3,4,5,6,7]
-        if self.x + 2 in x_y_possible_values:
+        x_y_possible_values=[0, 1, 2, 3, 4, 5, 6, 7]
+        if self.x + 1 in x_y_possible_values:
+            possible_targets.append([self.x + 1, self.y])
             if self.y+1 in x_y_possible_values:
-                possible_targets.append([self.x+2, self.y+1])
+                possible_targets.append([self.x+1, self.y+1])
             if self.y - 1 in x_y_possible_values:
-                possible_targets.append([self.x + 2, self.y - 1])
+                possible_targets.append([self.x + 1, self.y - 1])
 
-        if self.x - 2 in x_y_possible_values:
+        if self.x - 1 in x_y_possible_values:
+            possible_targets.append([self.x - 1, self.y])
             if self.y+1 in x_y_possible_values:
-                possible_targets.append([self.x-2, self.y + 1])
+                possible_targets.append([self.x - 1, self.y+1])
             if self.y - 1 in x_y_possible_values:
-                possible_targets.append([self.x-2, self.y - 1])
+                possible_targets.append([self.x - 1, self.y - 1])
 
-        if self.y + 2 in x_y_possible_values:
-            if self.x + 1 in x_y_possible_values:
-                possible_targets.append([self.x + 1, self.y + 2])
-            if self.x - 1 in x_y_possible_values:
-                possible_targets.append([self.x - 1, self.y + 2])
-
-        if self.y - 2 in x_y_possible_values:
-            if self.x + 1 in x_y_possible_values:
-                possible_targets.append([self.x + 1, self.y - 2])
-            if self.x - 1 in x_y_possible_values:
-                possible_targets.append([self.x - 1, self.y - 2])
+        if self.y + 1 in x_y_possible_values:
+            possible_targets.append([self.x, self.y + 1])
+        if self.y - 1 in x_y_possible_values:
+            possible_targets.append([self.x, self.y - 1])
 
         return possible_targets
 
+
     def get_current_position(self):
         pass
+
+    def get_name(self):
+        return "King"
+
+    def get_color(self):
+        return self.black_or_white
+
+    @property
+    def __repr__(self):
+        return "King(x={}, y={}, color = {})".format(self.x, self.y, self.black_or_white)
 
 
 
 class EmptyCell(Cell):
     def __init__(self, x, y):
         super().__init__(x, y)
+
+    @property
+    def __repr__(self):
+        return "EmptyCell(x={}, y={})".format(self.x, self.y)
+
 
 
 ##################################################### Cell and Grid ########################################################
