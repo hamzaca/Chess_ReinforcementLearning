@@ -1,7 +1,7 @@
 import abc
 
 ################### Interface for Pieces ####################
-class PieceInterface(metaclass=abc.ABCMeta):
+class PieceInterface():
     @abc.abstractmethod
     def possible_moves(self):
          # Possible moves by the pieces
@@ -62,9 +62,10 @@ class Cell:
 
 ################################ The Pawn  #################################
 
+
 class Pawn(Cell, PieceInterface):
     def __init__(self, x, y, black_or_white):
-        super().__init__(x, y)
+        Cell.__init__(self, x, y)
         self.black_or_white = black_or_white
         # when the pawn is created, he didn't move yet so it's true.
 
@@ -135,8 +136,8 @@ class Pawn(Cell, PieceInterface):
 ################################ The Bishop  #################################
 
 class Bishop(Cell, PieceInterface):
-    def __init__(self,x,y, black_or_white):
-        super().__init__(x,y)
+    def __init__(self, x, y, black_or_white):
+        Cell.__init__(self, x, y)
         self.black_or_white = black_or_white
 
     def get_color(self):
@@ -174,8 +175,8 @@ class Bishop(Cell, PieceInterface):
 ################################ The Knight  #################################
 
 class Knight(Cell, PieceInterface):
-    def __init__(self,x,y, black_or_white):
-        super().__init__(x,y)
+    def __init__(self, x, y, black_or_white):
+        Cell.__init__(self, x, y)
         self.black_or_white = black_or_white
 
 
@@ -196,8 +197,8 @@ class Knight(Cell, PieceInterface):
 
 
 class Rock(Cell, PieceInterface):
-    def __init__(self,x,y, black_or_white):
-        super().__init__(x,y)
+    def __init__(self, x, y, black_or_white):
+        Cell.__init__(self, x, y)
         self.black_or_white = black_or_white
 
     def get_color(self):
@@ -226,8 +227,8 @@ class Rock(Cell, PieceInterface):
 
 class Queen(Cell, PieceInterface):
 
-    def __init__(self,x,y, black_or_white):
-        super().__init__(x,y)
+    def __init__(self, x, y, black_or_white):
+        Cell.__init__(self, x, y)
         self.black_or_white = black_or_white
 
     def get_color(self):
@@ -270,8 +271,8 @@ class Queen(Cell, PieceInterface):
 
 class King(Cell, PieceInterface):
 
-    def __init__(self,x,y, black_or_white):
-        super().__init__(x,y)
+    def __init__(self, x, y, black_or_white):
+        Cell.__init__(self, x, y)
         self.black_or_white = black_or_white
 
     def get_color(self):
@@ -313,10 +314,10 @@ class King(Cell, PieceInterface):
         pass
 
 
-class EmptyCell(Cell) :
 
-    def __init__(self,x,y):
-        super().__init__(x,y)
+class EmptyCell(Cell):
+    def __init__(self, x, y):
+        super().__init__(x, y)
 
 
 ##################################################### Cell and Grid ########################################################
