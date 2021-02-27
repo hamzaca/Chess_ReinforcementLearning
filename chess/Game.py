@@ -1,5 +1,5 @@
 from chess.Grid_Pieces import Grid
-from chess import Player
+from chess.Player import Player
 import numpy as np
 
 class Game():
@@ -8,13 +8,14 @@ class Game():
         self.color_choice = color_choice
         # if method is random , choose colors randomdly according to [0.5, 0.5 ] probabilities
         if self.color_choice == "random":
-            self.color_player1 = np.random.choice(a=["black", "white"], p = [0.5, 0.5])
+            self.color_player1 = np.random.choice(a=["black", "white"], p=[0.5, 0.5])
             self.color_player2 = self.choose_player2_color(self.color_player1)
 
         # initialize Grid to the know position
-        self.player1 = Player()
-        self.player2 = Player()
-        self.grid = Grid(self.player1, self.player2)
+        self.grid = Grid(self.color_player1, self.color_player2)
+
+        self.player1 = Player(grid=self.grid, name="Hamza1", color_player=self.color_player1)
+        self.player2 = Player(grid=self.grid, name="Hamza2", color_player=self.color_player2)
         # white starts.
         self.black_to_play = False
         # store the log of the game step by step.
@@ -36,5 +37,7 @@ class Game():
         """ return True or False. """
         # when the king is no where to go but  not underattack. and the king is the only piece.
         pass
+    def get_grid(self):
+        return self.grid
 
 ## TODO :
