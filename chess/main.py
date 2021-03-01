@@ -10,9 +10,9 @@ if __name__ == '__main__':
     player1 = Player(grid,name='Hamza',color_player="white")
     player2 = Player(grid,name='Chess_Engine', color_player="black")
 
-    print(" The player {}  plays the color {}, while the player {} plays the color {}.".format(player1.get_name(),
+    print(" The player {}  plays the color {}, while the player {} plays the color {}.".format(player1.get_name,
                                                                                                player1.get_color(),
-                                                                                               player2.get_name(),
+                                                                                               player2.get_name,
                                                                                                player2.get_color()))
 
     rock = grid.get_grid()[0][0]

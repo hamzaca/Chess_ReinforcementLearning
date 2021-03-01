@@ -2,10 +2,11 @@ from chess.Grid_Pieces import Grid
 from chess.Player import Player
 import numpy as np
 
+
 class Game():
     def __init__(self, color_choice):
         """ color_choice  contain three possible outcomes, either black, white or random """
-        self.color_choice = color_choice
+        self.color_choice = color_choice.replace(" ", "")
         # if method is random , choose colors randomdly according to [0.5, 0.5 ] probabilities
         if self.color_choice == "random":
             self.color_player1 = np.random.choice(a=["black", "white"], p=[0.5, 0.5])
