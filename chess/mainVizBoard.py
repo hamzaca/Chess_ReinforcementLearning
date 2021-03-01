@@ -2,10 +2,11 @@ import pygame
 from chess.Grid_Pieces import Grid, EmptyCell
 from chess.Game import Game
 
-width = height = 600
+width = height = 500
 nb_squares = 8
 size_per_square = height // nb_squares
 max_fds = 15
+
 
 
 def load_pieces_icons():
@@ -78,6 +79,7 @@ def mean():
                 y = int(location[1])//size_per_square
                 # check if the piece is selected already.
                 # deselect it if so.
+                ## TODO : draw a red dot on the selected cell.
                 if piece_selected == (x, y):
                     piece_selected = ()
                     current_and_target = []
@@ -95,12 +97,15 @@ def mean():
                     x_y_current = current_and_target[0]
                     x_y_goal = current_and_target[1]
                     game.player1.move_piece(x_y_current, x_y_goal)
+                    print("current_and_target = ({})".format(current_and_target))
+
 
                     # When the position is played reset the list to empty.
                     current_and_target = []
-                
-                print(" x , y = ({}, {})".format(x, y))
-                print("current_and_target = ({})".format(current_and_target))
+                else:
+                    print(" x , y = ({}, {})".format(x, y))
+                    print("current_and_target = ({})".format(current_and_target))
+                print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
 
         draw_board(screen, grid)
         clock.tick(max_fds)

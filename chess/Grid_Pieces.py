@@ -1,4 +1,5 @@
 import abc
+# TODO : Fix the x and y position when black is up and when black is down.
 
 ################### Interface for Pieces ####################
 
@@ -74,6 +75,13 @@ class Pawn(Cell, PieceInterface):
         Cell.__init__(self, x, y)
         self.black_or_white = black_or_white
         # when the pawn is created, he didn't move yet so it's true.
+        self.is_first_move = True
+
+    def get_is_first_move(self):
+        return self.is_first_move
+
+    def set_is_first_move_to_false(self):
+        self.is_first_move = False
 
     def get_color(self):
         return self.black_or_white
@@ -419,17 +427,17 @@ class Grid:
  
 
         self.grid = []
-        self.grid += [[Rock(x=0, y=7, black_or_white=self.color_player1), Knight(x=1, y=7, black_or_white=self.color_player1), Bishop(x=2, y=7, black_or_white=self.color_player1), King(x=3, y=7, black_or_white=self.color_player1), Queen(x=4, y=7, black_or_white=self.color_player1), Bishop(x=5, y=7, black_or_white=self.color_player1),Knight(x=6, y=7, black_or_white=self.color_player1), Rock(x=7, y=7, black_or_white=self.color_player1)]]
-        self.grid += [[Pawn(x=0, y=6, black_or_white=self.color_player1), Pawn(x=1, y=6, black_or_white=self.color_player1), Pawn(x=2, y=6, black_or_white=self.color_player1),     Pawn(x=3, y=6, black_or_white=self.color_player1), Pawn(x=4, y=6, black_or_white=self.color_player1), Pawn(x=5, y=6, black_or_white=self.color_player1) ,Pawn(x=6, y=6, black_or_white=self.color_player1)   , Pawn(x=7, y=6, black_or_white=self.color_player1)]]
+        self.grid += [[Rock(x=0, y=0, black_or_white=self.color_player1), Knight(x=1, y=0, black_or_white=self.color_player1), Bishop(x=2, y=0, black_or_white=self.color_player1), King(x=3, y=0, black_or_white=self.color_player1), Queen(x=4, y=0, black_or_white=self.color_player1), Bishop(x=5, y=0, black_or_white=self.color_player1),Knight(x=6, y=0, black_or_white=self.color_player1), Rock(x=7, y=0, black_or_white=self.color_player1)]]
+        self.grid += [[Pawn(x=0, y=1, black_or_white=self.color_player1), Pawn(x=1, y=1, black_or_white=self.color_player1), Pawn(x=2, y=1, black_or_white=self.color_player1),     Pawn(x=3, y=1, black_or_white=self.color_player1), Pawn(x=4, y=1, black_or_white=self.color_player1), Pawn(x=5, y=1, black_or_white=self.color_player1) ,Pawn(x=6, y=1, black_or_white=self.color_player1)   , Pawn(x=7, y=1, black_or_white=self.color_player1)]]
 
-        self.grid += [[EmptyCell(x=0, y=5),EmptyCell(x=1, y=5),EmptyCell(x=2, y=5),EmptyCell(x=3, y=5),EmptyCell(x=4, y=5),EmptyCell(x=5, y=5),EmptyCell(x=6, y=5),EmptyCell(x=7, y=5) ]]
-        self.grid += [[EmptyCell(x=0, y=4),EmptyCell(x=1, y=4),EmptyCell(x=2, y=4),EmptyCell(x=3, y=4),EmptyCell(x=4, y=4),EmptyCell(x=5, y=4),EmptyCell(x=6, y=4),EmptyCell(x=7, y=4) ]]
+        self.grid += [[EmptyCell(x=0, y=2), EmptyCell(x=1, y=2),EmptyCell(x=2, y=2),EmptyCell(x=3, y=5),EmptyCell(x=4, y=2),EmptyCell(x=5, y=2),EmptyCell(x=6, y=2),EmptyCell(x=7, y=2) ]]
+        self.grid += [[EmptyCell(x=0, y=3), EmptyCell(x=1, y=3),EmptyCell(x=2, y=3),EmptyCell(x=3, y=4),EmptyCell(x=4, y=3),EmptyCell(x=5, y=3),EmptyCell(x=6, y=3),EmptyCell(x=7, y=3) ]]
 
-        self.grid += [[EmptyCell(x=0, y=3),EmptyCell(x=1, y=3),EmptyCell(x=2, y=3),EmptyCell(x=3, y=3),EmptyCell(x=4, y=3),EmptyCell(x=5, y=3),EmptyCell(x=6, y=3),EmptyCell(x=7, y=3) ]]
-        self.grid += [[EmptyCell(x=0, y=2),EmptyCell(x=1, y=2),EmptyCell(x=2, y=2),EmptyCell(x=3, y=2),EmptyCell(x=4, y=2),EmptyCell(x=5, y=2),EmptyCell(x=6, y=2),EmptyCell(x=7, y=2) ]]
+        self.grid += [[EmptyCell(x=0, y=4), EmptyCell(x=1, y=4),EmptyCell(x=2, y=4),EmptyCell(x=3, y=3),EmptyCell(x=4, y=4),EmptyCell(x=5, y=4),EmptyCell(x=6, y=4),EmptyCell(x=7, y=4) ]]
+        self.grid += [[EmptyCell(x=0, y=5), EmptyCell(x=1, y=5),EmptyCell(x=2, y=5),EmptyCell(x=3, y=2),EmptyCell(x=4, y=5),EmptyCell(x=5, y=5),EmptyCell(x=6, y=5),EmptyCell(x=7, y=5) ]]
 
-        self.grid += [[Pawn(x=0, y=1, black_or_white=self.color_player2), Pawn(x=1, y=1, black_or_white=self.color_player2),   Pawn(x=2, y=1, black_or_white=self.color_player2),     Pawn(x=3, y=1, black_or_white=self.color_player2), Pawn(x=4, y=1, black_or_white=self.color_player2), Pawn(x=5, y=1, black_or_white=self.color_player2) ,  Pawn(x=6, y=1, black_or_white=self.color_player2)   , Pawn(x=7, y=1, black_or_white=self.color_player2)]]
-        self.grid += [[Rock(x=0, y=0, black_or_white=self.color_player2), Knight(x=1, y=0, black_or_white=self.color_player2), Bishop(x=2, y=0, black_or_white=self.color_player2),   King(x=3, y=0, black_or_white=self.color_player2), Queen(x=4, y=0, black_or_white=self.color_player2), Bishop(x=5, y=0, black_or_white=self.color_player2),Knight(x=6, y=0, black_or_white=self.color_player2),  Rock(x=7, y=0, black_or_white=self.color_player2)]]
+        self.grid += [[Pawn(x=0, y=6, black_or_white=self.color_player2), Pawn(x=1, y=6, black_or_white=self.color_player2),   Pawn(x=2, y=6, black_or_white=self.color_player2),     Pawn(x=3, y=6, black_or_white=self.color_player2), Pawn(x=4, y=6, black_or_white=self.color_player2), Pawn(x=5, y=6, black_or_white=self.color_player2) ,  Pawn(x=6, y=6, black_or_white=self.color_player2)   , Pawn(x=7, y=6, black_or_white=self.color_player2)]]
+        self.grid += [[Rock(x=0, y=7, black_or_white=self.color_player2), Knight(x=1, y=7, black_or_white=self.color_player2), Bishop(x=2, y=7, black_or_white=self.color_player2),   King(x=3, y=7, black_or_white=self.color_player2), Queen(x=4, y=7, black_or_white=self.color_player2), Bishop(x=5, y=7, black_or_white=self.color_player2),Knight(x=6, y=7, black_or_white=self.color_player2),  Rock(x=7, y=7, black_or_white=self.color_player2)]]
 
 
     def get_grid(self):

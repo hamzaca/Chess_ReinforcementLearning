@@ -58,9 +58,15 @@ class Player:
         pawn = self.grid.get_piece(x_y_current)
         # get the possible moves from the current cell.
         possibles_moves = pawn.possible_moves()
+        print(" paw first move : ------>", pawn.get_is_first_move())
         print(" pawn possible moves : ", possibles_moves)
         if x_y_goal in possibles_moves:
             self.swap_pieces(x_y_current, x_y_goal)
+        else:
+            print(" the move selected is not allowed..")
+        # when the pawn moves  the first times it loses the possibility to mov two wells at one jump.
+        pawn.set_is_first_move_to_false()
+        print(" paw first move : ------>", pawn.get_is_first_move())
 
 
     def move_rock(self, x_y_current, x_y_goal):
