@@ -6,7 +6,7 @@ import abc
 
 class PieceInterface():
     @abc.abstractmethod
-    def possible_moves(self):
+    def possible_moves(self, grid):
          # Possible moves by the pieces
         raise NotImplementedError
 
@@ -86,57 +86,49 @@ class Pawn(Cell, PieceInterface):
     def get_color(self):
         return self.black_or_white
 
-    def possible_moves(self):
+    def possible_moves(self, grid):
         """ Return a list of the possible general  moves of the piece.
         :return  :  matrix of the possible move for the pawn. eaxh line is a possible move.
         """
         possible_targets = []
         if self.black_or_white == "white":
+            # First move
             if self.is_first_move:
-                possible_targets.append((self.x, self.y + 1))
-                possible_targets.append((self.x, self.y + 2))
-                # Capture to left or right
-                # if not the pawn in the far lest of Grid, the pawn can capture.
-                if self.x != 0:
-                    possible_targets.append((self.x - 1, self.y + 1))
-                # if not the pawn in the far right of Grid, the pawn can capture.
-                if self.x != 7:
-                    possible_targets.append((self.x + 1, self.y + 1))
-
-            # Not the first move.
+                # The first move of the pawn can be two squares
+                if isinstance(grid.get_piece((self.x, self.y + 1)), EmptyCell):
+                    possible_targets.append((self.x, self.y + 1))
+                    if isinstance(grid.get_piece((self.x, self.y + 2)), EmptyCell):
+                        possible_targets.append((self.x, self.y + 2))
+            # Not the first move
             else:
-                possible_targets.append((self.x, self.y + 1))
-                # Capture to left or right
-                # if not the pawn in the far lest of Grid, the pawn can capture.
-                if self.x != 0:
-                    possible_targets.append((self.x - 1, self.y + 1))
-                # if not the pawn in the far right of Grid, the pawn can capture.
-                if self.x != 7:
-                    possible_targets.append((self.x + 1, self.y + 1))
+                if self.y + 1 < 8 and isinstance(grid.get_piece((self.x, self.y + 1)), EmptyCell):
+                    possible_targets.append((self.x, self.y + 1))
 
+            # Capture
+            if self.x > 0 and self.y + 1 < 8 and not isinstance(grid.get_piece((self.x - 1, self.y + 1)), EmptyCell) and grid.get_piece((self.x - 1, self.y + 1)).get_color() != self.black_or_white:
+                possible_targets.append((self.x - 1, self.y + 1))
+            if self.x < 7 and self.y + 1 < 8 and not isinstance(grid.get_piece((self.x + 1, self.y + 1)), EmptyCell) and grid.get_piece((self.x + 1, self.y + 1)).get_color() != self.black_or_white:
+                possible_targets.append((self.x + 1, self.y + 1))
 
         # when it's the black pawn.
         else:
+            # First move
             if self.is_first_move:
-                possible_targets.append((self.x, self.y - 1))
-                possible_targets.append((self.x, self.y - 2))
-                # Capture to left or right
-                # if not the pawn in the far lest of Grid, the pawn can capture.
-                if self.x != 0:
-                    possible_targets.append((self.x - 1, self.y - 1))
-                # if not the pawn in the far right of Grid, the pawn can capture.
-                if self.x != 7:
-                    possible_targets.append((self.x + 1, self.y - 1))
+                # The first move of the pawn can be two squares
+                if isinstance(grid.get_piece((self.x, self.y - 1)), EmptyCell):
+                    possible_targets.append((self.x, self.y - 1))
+                    if isinstance(grid.get_piece((self.x, self.y - 2)), EmptyCell):
+                        possible_targets.append((self.x, self.y - 2))
             # Not the first move
             else:
-                possible_targets.append((self.x, self.y - 1))
-                # Capture to left or right
-                # if not the pawn in the far lest of Grid, the pawn can capture.
-                if self.x != 0:
-                    possible_targets.append((self.x - 1, self.y - 1))
-                # if not the pawn in the far right of Grid, the pawn can capture.
-                if self.x != 7:
-                    possible_targets.append((self.x + 1, self.y - 1))
+                if self.y - 1 >= 0 and isinstance(grid.get_piece((self.x, self.y - 1)), EmptyCell):
+                    possible_targets.append((self.x, self.y - 1))
+
+            # Capture
+            if self.x > 0 and self.y - 1 >= 0 and not isinstance(grid.get_piece((self.x - 1, self.y - 1)), EmptyCell) and grid.get_piece((self.x - 1, self.y - 1)).get_color() != self.black_or_white:
+                possible_targets.append((self.x - 1, self.y - 1))
+            if self.x < 7 and self.y - 1 >= 0 and not isinstance(grid.get_piece((self.x + 1, self.y - 1)), EmptyCell) and grid.get_piece((self.x + 1, self.y - 1)).get_color() != self.black_or_white:
+                possible_targets.append((self.x + 1, self.y - 1))
 
         return possible_targets
 
@@ -165,27 +157,56 @@ class Bishop(Cell, PieceInterface):
     def get_color(self):
         return self.black_or_white
 
-    def possible_moves(self):
+    def possible_moves(self, grid):
         """ Return a list of the possible general  moves of the piece.
         :return  :  matrix of the possible move for the bishop. each line is a possible move.
         """
         possible_targets = []
-        # bihsop's movement are according two lines. y = ax + b. with a = 1 for the first one and a = -1 for the second.
-        # the value of b depends on the bishop  initial position.
-        # compute b1 and b2
-        b1 = self.y - self.x
-        b2 = self.y + self.x
-        x_y_possible_values=[0, 1, 2, 3, 4, 5, 6, 7]
-        # for each x compute the correspondant y value that are in the lines of the bishop's movement.
-        # check they are  integers among 0 and 7.
-        for x_value in x_y_possible_values:
-            y1 = x_value + b1
-            y2 = -x_value + b2
-            if y1 in x_y_possible_values:
-                possible_targets.append((x_value, 7-y1))
-            if y2 in x_y_possible_values:
-                possible_targets.append((x_value, 7-y2))
-        return list(dict.fromkeys(possible_targets))
+        # up-right
+        for i in range(1, 8):
+            if self.x + i < 8 and self.y + i < 8:
+                piece = grid.get_piece((self.x + i, self.y + i))
+                if isinstance(piece, EmptyCell):
+                    possible_targets.append((self.x + i, self.y + i))
+                elif piece.get_color() != self.black_or_white:
+                    possible_targets.append((self.x + i, self.y + i))
+                    break
+                else:
+                    break
+        # up-left
+        for i in range(1, 8):
+            if self.x - i >= 0 and self.y + i < 8:
+                piece = grid.get_piece((self.x - i, self.y + i))
+                if isinstance(piece, EmptyCell):
+                    possible_targets.append((self.x - i, self.y + i))
+                elif piece.get_color() != self.black_or_white:
+                    possible_targets.append((self.x - i, self.y + i))
+                    break
+                else:
+                    break
+        # down-right
+        for i in range(1, 8):
+            if self.x + i < 8 and self.y - i >= 0:
+                piece = grid.get_piece((self.x + i, self.y - i))
+                if isinstance(piece, EmptyCell):
+                    possible_targets.append((self.x + i, self.y - i))
+                elif piece.get_color() != self.black_or_white:
+                    possible_targets.append((self.x + i, self.y - i))
+                    break
+                else:
+                    break
+        # down-left
+        for i in range(1, 8):
+            if self.x - i >= 0 and self.y - i >= 0:
+                piece = grid.get_piece((self.x - i, self.y - i))
+                if isinstance(piece, EmptyCell):
+                    possible_targets.append((self.x - i, self.y - i))
+                elif piece.get_color() != self.black_or_white:
+                    possible_targets.append((self.x - i, self.y - i))
+                    break
+                else:
+                    break
+        return possible_targets
 
 
 
@@ -214,37 +235,21 @@ class Knight(Cell, PieceInterface):
     def get_color(self):
         return self.black_or_white
 
-    def possible_moves(self):
+    def possible_moves(self, grid):
         """ Return a list of the possible general  moves of the piece.
         :return  :  matrix of the possible move for the knight. each line is a possible move.
         """
         possible_targets = []
         x_y_possible_values=[0,1,2,3,4,5,6,7]
-        if self.x + 2 in x_y_possible_values:
-            if self.y+1 in x_y_possible_values:
-                possible_targets.append((self.x+2, self.y+1))
-            if self.y - 1 in x_y_possible_values:
-                possible_targets.append((self.x + 2, self.y - 1))
-
-        if self.x - 2 in x_y_possible_values:
-            if self.y+1 in x_y_possible_values:
-                possible_targets.append((self.x-2, self.y + 1))
-            if self.y - 1 in x_y_possible_values:
-                possible_targets.append((self.x-2, self.y - 1))
-
-        if self.y + 2 in x_y_possible_values:
-            if self.x + 1 in x_y_possible_values:
-                possible_targets.append((self.x + 1, self.y + 2))
-            if self.x - 1 in x_y_possible_values:
-                possible_targets.append((self.x - 1, self.y + 2))
-
-        if self.y - 2 in x_y_possible_values:
-            if self.x + 1 in x_y_possible_values:
-                possible_targets.append((self.x + 1, self.y - 2))
-            if self.x - 1 in x_y_possible_values:
-                possible_targets.append((self.x - 1, self.y - 2))
-
-        return list(dict.fromkeys(possible_targets))
+        moves = [(2, 1), (2, -1), (-2, 1), (-2, -1), (1, 2), (1, -2), (-1, 2), (-1, -2)]
+        for move in moves:
+            x = self.x + move[0]
+            y = self.y + move[1]
+            if 0 <= x < 8 and 0 <= y < 8:
+                piece = grid.get_piece((x, y))
+                if isinstance(piece, EmptyCell) or piece.get_color() != self.black_or_white:
+                    possible_targets.append((x, y))
+        return possible_targets
 
 
 
@@ -271,20 +276,56 @@ class Rock(Cell, PieceInterface):
     def get_color(self):
         return self.black_or_white
 
-    def possible_moves(self):
+    def possible_moves(self, grid):
         """ Return a list of the possible general  moves of the piece.
         :return  :  matrix of the possible move for the bishop. each line is a possible move.
         """
         possible_targets = []
-        for value in range(8):
-            # vertical movement.
-            if value != self.y:
-                possible_targets.append((self.x, value))
-            # horizontal movement.
-            if value != self.x:
-                possible_targets.append((value, self.y))
-        print(" possible_targets : ",possible_targets)
-        return list(dict.fromkeys(possible_targets))
+        # up
+        for i in range(1, 8):
+            if self.y + i < 8:
+                piece = grid.get_piece((self.x, self.y + i))
+                if isinstance(piece, EmptyCell):
+                    possible_targets.append((self.x, self.y + i))
+                elif piece.get_color() != self.black_or_white:
+                    possible_targets.append((self.x, self.y + i))
+                    break
+                else:
+                    break
+        # down
+        for i in range(1, 8):
+            if self.y - i >= 0:
+                piece = grid.get_piece((self.x, self.y - i))
+                if isinstance(piece, EmptyCell):
+                    possible_targets.append((self.x, self.y - i))
+                elif piece.get_color() != self.black_or_white:
+                    possible_targets.append((self.x, self.y - i))
+                    break
+                else:
+                    break
+        # right
+        for i in range(1, 8):
+            if self.x + i < 8:
+                piece = grid.get_piece((self.x + i, self.y))
+                if isinstance(piece, EmptyCell):
+                    possible_targets.append((self.x + i, self.y))
+                elif piece.get_color() != self.black_or_white:
+                    possible_targets.append((self.x + i, self.y))
+                    break
+                else:
+                    break
+        # left
+        for i in range(1, 8):
+            if self.x - i >= 0:
+                piece = grid.get_piece((self.x - i, self.y))
+                if isinstance(piece, EmptyCell):
+                    possible_targets.append((self.x - i, self.y))
+                elif piece.get_color() != self.black_or_white:
+                    possible_targets.append((self.x - i, self.y))
+                    break
+                else:
+                    break
+        return possible_targets
 
 
     def get_current_position(self):
@@ -311,34 +352,94 @@ class Queen(Cell, PieceInterface):
     def get_color(self):
         return self.black_or_white
 
-    def possible_moves(self):
+    def possible_moves(self, grid):
         """ Return a list of the possible general  moves of the piece.
         :return  :  matrix of the possible move for the queen. each line is a possible move.
         """
         possible_targets = []
-        ## The bishop like movements.
-        b1 = self.y - self.x
-        b2 = self.y + self.x
-        x_y_possible_values=[0,1,2,3,4,5,6,7]
-        # for each x compute the correspondant y value that are in the lines of the bishop's movement.
-        # check they are  integers among 0 and 7.
-        for x_value in x_y_possible_values:
-            y1 = x_value + b1
-            y2 = -x_value + b2
-            if y1 in x_y_possible_values:
-                possible_targets.append((x_value, 7 - y1))
-            if y2 in x_y_possible_values:
-                possible_targets.append((x_value, 7 - y2))
-        ## add the rock like movement.
-        for value in range(8):
-            # vertical movement.
-            if value != self.y:
-                possible_targets.append((self.x, value))
-            # horizontal movement.
-            if value != self.x:
-                possible_targets.append((value, self.y))
-        # The bishop line have a cell in common. so let's delete the duplicates in the output.
-        return list(dict.fromkeys(possible_targets))
+        # Bishop-like moves
+        for i in range(1, 8):
+            if self.x + i < 8 and self.y + i < 8:
+                piece = grid.get_piece((self.x + i, self.y + i))
+                if isinstance(piece, EmptyCell):
+                    possible_targets.append((self.x + i, self.y + i))
+                elif piece.get_color() != self.black_or_white:
+                    possible_targets.append((self.x + i, self.y + i))
+                    break
+                else:
+                    break
+        for i in range(1, 8):
+            if self.x - i >= 0 and self.y + i < 8:
+                piece = grid.get_piece((self.x - i, self.y + i))
+                if isinstance(piece, EmptyCell):
+                    possible_targets.append((self.x - i, self.y + i))
+                elif piece.get_color() != self.black_or_white:
+                    possible_targets.append((self.x - i, self.y + i))
+                    break
+                else:
+                    break
+        for i in range(1, 8):
+            if self.x + i < 8 and self.y - i >= 0:
+                piece = grid.get_piece((self.x + i, self.y - i))
+                if isinstance(piece, EmptyCell):
+                    possible_targets.append((self.x + i, self.y - i))
+                elif piece.get_color() != self.black_or_white:
+                    possible_targets.append((self.x + i, self.y - i))
+                    break
+                else:
+                    break
+        for i in range(1, 8):
+            if self.x - i >= 0 and self.y - i >= 0:
+                piece = grid.get_piece((self.x - i, self.y - i))
+                if isinstance(piece, EmptyCell):
+                    possible_targets.append((self.x - i, self.y - i))
+                elif piece.get_color() != self.black_or_white:
+                    possible_targets.append((self.x - i, self.y - i))
+                    break
+                else:
+                    break
+        # Rock-like moves
+        for i in range(1, 8):
+            if self.y + i < 8:
+                piece = grid.get_piece((self.x, self.y + i))
+                if isinstance(piece, EmptyCell):
+                    possible_targets.append((self.x, self.y + i))
+                elif piece.get_color() != self.black_or_white:
+                    possible_targets.append((self.x, self.y + i))
+                    break
+                else:
+                    break
+        for i in range(1, 8):
+            if self.y - i >= 0:
+                piece = grid.get_piece((self.x, self.y - i))
+                if isinstance(piece, EmptyCell):
+                    possible_targets.append((self.x, self.y - i))
+                elif piece.get_color() != self.black_or_white:
+                    possible_targets.append((self.x, self.y - i))
+                    break
+                else:
+                    break
+        for i in range(1, 8):
+            if self.x + i < 8:
+                piece = grid.get_piece((self.x + i, self.y))
+                if isinstance(piece, EmptyCell):
+                    possible_targets.append((self.x + i, self.y))
+                elif piece.get_color() != self.black_or_white:
+                    possible_targets.append((self.x + i, self.y))
+                    break
+                else:
+                    break
+        for i in range(1, 8):
+            if self.x - i >= 0:
+                piece = grid.get_piece((self.x - i, self.y))
+                if isinstance(piece, EmptyCell):
+                    possible_targets.append((self.x - i, self.y))
+                elif piece.get_color() != self.black_or_white:
+                    possible_targets.append((self.x - i, self.y))
+                    break
+                else:
+                    break
+        return possible_targets
 
     def get_current_position(self):
         pass
@@ -365,32 +466,22 @@ class King(Cell, PieceInterface):
     def get_color(self):
         return self.black_or_white
 
-    def possible_moves(self):
+    def possible_moves(self, grid):
         """ Return a list of the possible general  moves of the piece.
         :return  :  matrix of the possible move for the king. each line is a possible move.
         """
         possible_targets = []
-        x_y_possible_values=[0, 1, 2, 3, 4, 5, 6, 7]
-        if self.x + 1 in x_y_possible_values:
-            possible_targets.append((self.x + 1, self.y))
-            if self.y+1 in x_y_possible_values:
-                possible_targets.append((self.x+1, self.y+1))
-            if self.y - 1 in x_y_possible_values:
-                possible_targets.append((self.x + 1, self.y - 1))
-
-        if self.x - 1 in x_y_possible_values:
-            possible_targets.append((self.x - 1, self.y))
-            if self.y+1 in x_y_possible_values:
-                possible_targets.append((self.x - 1, self.y+1))
-            if self.y - 1 in x_y_possible_values:
-                possible_targets.append((self.x - 1, self.y - 1))
-
-        if self.y + 1 in x_y_possible_values:
-            possible_targets.append((self.x, self.y + 1))
-        if self.y - 1 in x_y_possible_values:
-            possible_targets.append((self.x, self.y - 1))
-
-        return list(dict.fromkeys(possible_targets))
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if i == 0 and j == 0:
+                    continue
+                x = self.x + i
+                y = self.y + j
+                if 0 <= x < 8 and 0 <= y < 8:
+                    piece = grid.get_piece((x, y))
+                    if isinstance(piece, EmptyCell) or piece.get_color() != self.black_or_white:
+                        possible_targets.append((x, y))
+        return possible_targets
 
 
     def get_current_position(self):
@@ -459,11 +550,45 @@ class Grid:
 
 
 
-    def is_check(self):
-        """" Verify if the king is check"""
-        pass
+    def get_king_position(self, color):
+        for y, row in enumerate(self.grid):
+            for x, piece in enumerate(row):
+                if isinstance(piece, King) and piece.get_color() == color:
+                    return (x, y)
+        return None
 
-    def is_check_mate(self):
-        """ Verify if the King is checkmate"""
-        pass
+    def is_check(self, color):
+        king_pos = self.get_king_position(color)
+        if king_pos is None:
+            return False
+        
+        opponent_color = "white" if color == "black" else "black"
+        for y, row in enumerate(self.grid):
+            for x, piece in enumerate(row):
+                if not isinstance(piece, EmptyCell) and piece.get_color() == opponent_color:
+                    if king_pos in piece.possible_moves(self):
+                        return True
+        return False
+
+    def is_check_mate(self, color):
+        if not self.is_check(color):
+            return False
+
+        for y, row in enumerate(self.grid):
+            for x, piece in enumerate(row):
+                if not isinstance(piece, EmptyCell) and piece.get_color() == color:
+                    for move in piece.possible_moves(self):
+                        # Create a copy of the grid to simulate the move
+                        import copy
+                        temp_grid = copy.deepcopy(self)
+                        
+                        # Simulate the move
+                        current_pos = (x, y)
+                        temp_grid.set_piece_in_grid(move, piece)
+                        temp_grid.set_piece_in_grid(current_pos, EmptyCell(x=x, y=y))
+                        
+                        # Check if the king is still in check
+                        if not temp_grid.is_check(color):
+                            return False
+        return True
 

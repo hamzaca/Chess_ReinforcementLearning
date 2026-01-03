@@ -1,5 +1,5 @@
-from chess.Grid_Pieces import Grid
-from chess.Grid_Pieces import Pawn, Rock, Bishop, Knight, Queen, King, EmptyCell
+from .Grid_Pieces import Grid
+from .Grid_Pieces import Pawn, Rock, Bishop, Knight, Queen, King, EmptyCell
 
 
 class Player:
@@ -57,7 +57,7 @@ class Player:
     def move_pawn(self,x_y_current, x_y_goal):
         pawn = self.grid.get_piece(x_y_current)
         # get the possible moves from the current cell.
-        possibles_moves = pawn.possible_moves()
+        possibles_moves = pawn.possible_moves(self.grid)
         print(" paw first move : ------>", pawn.get_is_first_move())
         print(" pawn possible moves : ", possibles_moves)
         if x_y_goal in possibles_moves:
@@ -73,7 +73,7 @@ class Player:
         """Move the rock to the position (x_goal,y_goal)"""
         #TODO : check if it's a legal move for the rock
         rock = self.grid.get_piece(x_y_current)
-        possibles_moves = rock.possible_moves()
+        possibles_moves = rock.possible_moves(self.grid)
         print(" pawn possible moves : ", possibles_moves)
         if x_y_goal in possibles_moves:
             self.swap_pieces(x_y_current, x_y_goal)
@@ -82,7 +82,7 @@ class Player:
         """Move the bishop to the position (x_goal,y_goal)"""
         #TODO : check if it's a legal move for the bishop
         bishop = self.grid.get_piece(x_y_current)
-        possibles_moves = bishop.possible_moves()
+        possibles_moves = bishop.possible_moves(self.grid)
         print(" pawn possible moves : ", possibles_moves)
 
         if x_y_goal in possibles_moves:
@@ -92,7 +92,7 @@ class Player:
         """Move the knight to the position (x_goal,y_goal)"""
         #TODO : check if it's a legal move for the knight
         knight = self.grid.get_piece(x_y_current)
-        possibles_moves = knight.possible_moves()
+        possibles_moves = knight.possible_moves(self.grid)
         print(" pawn possible moves : ", possibles_moves)
         if x_y_goal in possibles_moves:
             self.swap_pieces(x_y_current, x_y_goal)
@@ -100,7 +100,7 @@ class Player:
         """Move the queen to the position (x_goal,y_goal)"""
         #TODO : check if it's a legal move for the queen
         queen = self.grid.get_piece(x_y_current)
-        possibles_moves = queen.possible_moves()
+        possibles_moves = queen.possible_moves(self.grid)
         print(" pawn possible moves : ", possibles_moves)
         self.swap_pieces(x_y_current, x_y_goal)
 
@@ -108,7 +108,7 @@ class Player:
         """Move the king to the position (x_goal,y_goal)"""
         #TODO : check if it's a legal move for the king
         king = self.grid.get_piece(x_y_current)
-        possibles_moves = king.possible_moves()
+        possibles_moves = king.possible_moves(self.grid)
         if x_y_goal in possibles_moves:
             self.swap_pieces(x_y_current, x_y_goal)
 
