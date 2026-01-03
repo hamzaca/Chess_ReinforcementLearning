@@ -1,6 +1,7 @@
 import pygame
-from chess.Grid_Pieces import Grid, EmptyCell
-from chess.Game import Game
+import os
+from .Grid_Pieces import Grid, EmptyCell
+from .Game import Game
 
 width = height = 500
 nb_squares = 8
@@ -14,7 +15,7 @@ def load_pieces_icons():
     pieces_images = {}
     for color in ["black", "white"]:
         for piece in ["Rock", "Bishop", "Knight", "Queen", "King", "Pawn"]:
-            pieces_images[color + piece] = pygame.transform.scale(pygame.image.load("pieces_images/" + color+piece+".png"),
+            pieces_images[color + piece] = pygame.transform.scale(pygame.image.load(os.path.join(os.path.dirname(__file__), "pieces_images", color+piece+".png")),
                                                                   (size_per_square, size_per_square))
     return pieces_images
 
@@ -66,48 +67,69 @@ def mean():
     piece_selected = ()
     # list of two tuples indicating the start and the target of the selected piece.
     current_and_target = []
+    player_turn = "white"
+    possible_moves = []
+    game_over = False
     while running:
         # get the grid each time. Cause it might be updated.
         grid = game.get_grid()
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 running = False
-            elif e.type == pygame.MOUSEBUTTONUP:
+            elif e.type == pygame.MOUSEBUTTONUP and not game_over:
                 # get the x and y of the square or piece selected by the user using his mouse.
                 location = pygame.mouse.get_pos()
                 x = int(location[0])//size_per_square
                 y = int(location[1])//size_per_square
-                # check if the piece is selected already.
-                # deselect it if so.
-                ## TODO : draw a red dot on the selected cell.
+                
                 if piece_selected == (x, y):
                     piece_selected = ()
                     current_and_target = []
-                    print(" x , y = ({}, {}) is already selected;  so it will be deselected ".format(x, y))
-                # if the target is != from the current position. when add
+                    possible_moves = []
                 else:
-                    piece_selected = (x, y)
-                    piece = grid.get_piece(piece_selected)
-                    print(" --------- the piece selected -------> :  ", piece)
-                    current_and_target.append(piece_selected)
+                    piece = grid.get_piece((x,y))
+                    if not isinstance(piece, EmptyCell) and piece.get_color() == player_turn:
+                        piece_selected = (x, y)
+                        current_and_target.append(piece_selected)
+                        possible_moves = piece.possible_moves(grid)
+                    elif piece_selected:
+                        if (x, y) in possible_moves:
+                            current_and_target.append((x, y))
 
-                # if two position already selected, play the move reset and add the new selected piece to the list.
                 if len(current_and_target) == 2:
-                    print(" the positions to play is : ", current_and_target)
                     x_y_current = current_and_target[0]
                     x_y_goal = current_and_target[1]
-                    game.player1.move_piece(x_y_current, x_y_goal)
-                    print("current_and_target = ({})".format(current_and_target))
+                    if player_turn == "white":
+                        game.player1.move_piece(x_y_current, x_y_goal)
+                        if grid.is_check_mate("black"):
+                            print("Checkmate! White wins.")
+                            game_over = True
+                        elif game.draw("black"):
+                            print("Draw!")
+                            game_over = True
+                        player_turn = "black"
+                    else:
+                        game.player2.move_piece(x_y_current, x_y_goal)
+                        if grid.is_check_mate("white"):
+                            print("Checkmate! Black wins.")
+                            game_over = True
+                        elif game.draw("white"):
+                            print("Draw!")
+                            game_over = True
+                        player_turn = "white"
 
-
-                    # When the position is played reset the list to empty.
                     current_and_target = []
-                else:
-                    print(" x , y = ({}, {})".format(x, y))
-                    print("current_and_target = ({})".format(current_and_target))
-                print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+                    piece_selected = ()
+                    possible_moves = []
 
         draw_board(screen, grid)
+
+        # Highlight possible moves
+        if piece_selected:
+            pygame.draw.rect(screen, (255, 0, 0, 100), pygame.Rect(piece_selected[0]*size_per_square, piece_selected[1]*size_per_square, size_per_square, size_per_square), 3)
+            for move in possible_moves:
+                pygame.draw.circle(screen, (255, 0, 0, 100), (move[0]*size_per_square + size_per_square//2, move[1]*size_per_square + size_per_square//2), 10)
+
         clock.tick(max_fds)
         pygame.display.flip()
 

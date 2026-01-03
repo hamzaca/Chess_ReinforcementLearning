@@ -1,5 +1,5 @@
-from chess.Grid_Pieces import Grid
-from chess.Player import Player
+from .Grid_Pieces import Grid
+from .Player import Player
 import numpy as np
 
 
@@ -34,10 +34,28 @@ class Game():
         """ return True or False"""
         # when the king is underattack and nowhere  to go
         pass
-    def draw(self):
+    def draw(self, color):
         """ return True or False. """
-        # when the king is no where to go but  not underattack. and the king is the only piece.
-        pass
+        if self.grid.is_check(color):
+            return False
+
+        for y, row in enumerate(self.grid.get_grid()):
+            for x, piece in enumerate(row):
+                if not isinstance(piece, EmptyCell) and piece.get_color() == color:
+                    for move in piece.possible_moves(self.grid):
+                        # Create a copy of the grid to simulate the move
+                        import copy
+                        temp_grid = copy.deepcopy(self.grid)
+                        
+                        # Simulate the move
+                        current_pos = (x, y)
+                        temp_grid.set_piece_in_grid(move, piece)
+                        temp_grid.set_piece_in_grid(current_pos, EmptyCell(x=x, y=y))
+                        
+                        # Check if the king is still in check
+                        if not temp_grid.is_check(color):
+                            return False
+        return True
     def get_grid(self):
         return self.grid
 

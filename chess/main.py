@@ -1,5 +1,5 @@
-from chess.Player import  Player
-from chess.Grid_Pieces import Grid
+from .Player import  Player
+from .Grid_Pieces import Grid
 
 
 if __name__ == '__main__':
