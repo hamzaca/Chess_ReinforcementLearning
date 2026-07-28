@@ -1,0 +1,62 @@
+<div class="layout">
+  <section class="board-panel">
+    <div class="board" [class.disabled]="isGameOver">
+      <ng-container *ngFor="let row of board; let r = index">
+        <div
+          *ngFor="let cell of row; let c = index"
+          class="square"
+          [class.light]="(r + c) % 2 === 0"
+          [class.dark]="(r + c) % 2 === 1"
+          [class.selected]="isSelected(r, c)"
+          [class.last-move]="isLastMove(r, c)"
+          (click)="onSquareClick(r, c)"
+        >
+          <img *ngIf="cell" [src]="pieceImage(cell)" [alt]="cell" draggable="false" />
+          <span *ngIf="isLegalTarget(r, c)" class="target-dot" [class.capture]="!!cell"></span>
+          <span *ngIf="c === 0" class="coord rank">{{ rankLabel(r) }}</span>
+          <span *ngIf="r === 7" class="coord file">{{ fileLabel(c) }}</span>
+        </div>
+      </ng-container>
+    </div>
+  </section>
+
+  <aside class="side-panel">
+    <h2>Play vs Agent</h2>
+    <p class="colors">
+      You play <strong>{{ userColor }}</strong> — the agent plays
+      {{ userColor === 'white' ? 'black' : 'white' }}.
+    </p>
+
+    <label class="toggle">
+      <input type="checkbox" [(ngModel)]="showLegalMoves" (change)="clearSelection()" />
+      Show Legal Moves
+    </label>
+
+    <div class="status">
+      <p *ngIf="!isGameOver">
+        Turn: <strong>{{ turn }}</strong>
+        <span *ngIf="inCheck" class="check-badge">check!</span>
+      </p>
+      <p *ngIf="message" class="message">{{ message }}</p>
+      <p *ngIf="error" class="error">{{ error }}</p>
+    </div>
+
+    <div class="actions">
+      <button (click)="undoMove()" [disabled]="loading || moveCount === 0" title="Take back your last move">
+        &#8630; Undo Move
+      </button>
+      <button (click)="undoToStart()" [disabled]="loading || moveCount === 0" title="Rewind to the start of the game">
+        |&#8630; Back to Start
+      </button>
+    </div>
+    <div class="actions">
+      <button (click)="newGame()" [disabled]="loading">Start New Game</button>
+      <a routerLink="/library"><button type="button">Game Library</button></a>
+    </div>
+
+    <div class="pgn" *ngIf="pgn">
+      <h3>Moves</h3>
+      <p>{{ pgn }}</p>
+    </div>
+  </aside>
+</div>

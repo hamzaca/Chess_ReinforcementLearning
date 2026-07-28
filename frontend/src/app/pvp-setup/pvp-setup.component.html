@@ -1,0 +1,49 @@
+<div class="setup">
+  <h2>Two Players</h2>
+
+  <div class="mode-picker">
+    <label class="mode-card" [class.active]="mode === 'local'">
+      <input type="radio" name="mode" value="local" [(ngModel)]="mode" />
+      <strong>Same screen</strong>
+      <span>Two players take turns on this device.</span>
+    </label>
+    <label class="mode-card" [class.active]="mode === 'online'">
+      <input type="radio" name="mode" value="online" [(ngModel)]="mode" />
+      <strong>Share a link</strong>
+      <span>Your opponent joins from their own browser.</span>
+    </label>
+  </div>
+
+  <form (ngSubmit)="start()">
+    <ng-container *ngIf="mode === 'local'">
+      <label>
+        White player
+        <input type="text" [(ngModel)]="whiteName" name="whiteName" placeholder="White" maxlength="40" />
+      </label>
+      <label>
+        Black player
+        <input type="text" [(ngModel)]="blackName" name="blackName" placeholder="Black" maxlength="40" />
+      </label>
+    </ng-container>
+
+    <ng-container *ngIf="mode === 'online'">
+      <label>
+        Your name
+        <input type="text" [(ngModel)]="creatorName" name="creatorName" placeholder="Player 1" maxlength="40" />
+      </label>
+      <label>
+        Your color
+        <select [(ngModel)]="creatorColor" name="creatorColor">
+          <option value="random">Random</option>
+          <option value="white">White</option>
+          <option value="black">Black</option>
+        </select>
+      </label>
+    </ng-container>
+
+    <p *ngIf="error" class="error">{{ error }}</p>
+    <button type="submit" [disabled]="loading">
+      {{ mode === 'local' ? 'Start Game' : 'Create Game & Get Link' }}
+    </button>
+  </form>
+</div>

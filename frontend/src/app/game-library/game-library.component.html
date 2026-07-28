@@ -1,0 +1,53 @@
+<div class="library">
+  <header>
+    <h2>Game Library</h2>
+    <div class="controls">
+      <label class="toggle">
+        <input type="checkbox" [(ngModel)]="favoritesOnly" (change)="load()" />
+        Favorites only
+      </label>
+      <button (click)="startNewGame()">Start New Game</button>
+    </div>
+  </header>
+
+  <p *ngIf="error" class="error">{{ error }}</p>
+  <p *ngIf="!error && games.length === 0" class="empty">No games yet — go play one!</p>
+
+  <table *ngIf="games.length > 0">
+    <thead>
+      <tr>
+        <th></th>
+        <th>#</th>
+        <th>Players</th>
+        <th>Started</th>
+        <th>Status</th>
+        <th>Moves</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let game of games">
+        <td>
+          <button
+            class="star"
+            [class.on]="game.is_favorite"
+            (click)="toggleFavorite(game)"
+            [attr.aria-label]="game.is_favorite ? 'Unfavorite' : 'Favorite'"
+          >
+            {{ game.is_favorite ? '★' : '☆' }}
+          </button>
+        </td>
+        <td>{{ game.id }}</td>
+        <td>{{ playersOf(game) }}</td>
+        <td>{{ game.created_at | date: 'medium' }}</td>
+        <td>{{ statusOf(game) }}</td>
+        <td>{{ game.move_count }}</td>
+        <td class="row-actions">
+          <a [routerLink]="['/replay', game.id]"><button [disabled]="game.move_count === 0">Replay</button></a>
+          <a *ngIf="!game.is_completed && game.mode === 'agent'" routerLink="/"><button>Resume</button></a>
+          <a *ngIf="!game.is_completed && game.mode !== 'agent'" [routerLink]="['/pvp/play', game.id]"><button>Open</button></a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
