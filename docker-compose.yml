@@ -1,0 +1,30 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    environment:
+      # SQLite stored on a named volume so game data survives restarts.
+      # Swap to PostgreSQL by pointing this at a postgres service, e.g.:
+      #   DATABASE_URL: postgresql+psycopg://chess:chess@db:5432/chess
+      DATABASE_URL: sqlite:////data/chess_data.db
+    volumes:
+      - chess-data:/data
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+
+volumes:
+  chess-data:

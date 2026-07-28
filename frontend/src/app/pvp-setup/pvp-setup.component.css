@@ -1,0 +1,69 @@
+.setup {
+  max-width: 560px;
+}
+
+.mode-picker {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.mode-card {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #6b6257;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #2a2722;
+}
+
+.mode-card.active {
+  border-color: #d7b36a;
+  background: #35312b;
+}
+
+.mode-card input {
+  display: none;
+}
+
+.mode-card span {
+  color: #b9b2a6;
+  font-size: 0.9rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  color: #b9b2a6;
+}
+
+form input,
+form select {
+  font: inherit;
+  padding: 0.5rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid #6b6257;
+  background: #14120f;
+  color: #eae6df;
+}
+
+form button {
+  align-self: flex-start;
+}
+
+.error {
+  color: #e08a7a;
+  margin: 0;
+}

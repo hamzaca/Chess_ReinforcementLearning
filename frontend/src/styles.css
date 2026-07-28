@@ -1,0 +1,33 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: #1f1d1a;
+  color: #eae6df;
+}
+
+a {
+  color: #d7b36a;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid #6b6257;
+  border-radius: 6px;
+  background: #35312b;
+  color: #eae6df;
+  padding: 0.45rem 0.9rem;
+}
+
+button:hover:not(:disabled) {
+  background: #46403a;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

@@ -1,0 +1,83 @@
+<div class="pvp" *ngIf="state; else loadingTpl">
+  <!-- Player names banner on top -->
+  <header class="players">
+    <div class="player" [class.active]="!state.is_game_over && state.turn === 'black'">
+      <span class="swatch black"></span>
+      <span class="name">{{ nameOf('black') }}</span>
+      <span *ngIf="isYou('black')" class="you">(you)</span>
+    </div>
+    <span class="vs">vs</span>
+    <div class="player" [class.active]="!state.is_game_over && state.turn === 'white'">
+      <span class="swatch white"></span>
+      <span class="name">{{ nameOf('white') }}</span>
+      <span *ngIf="isYou('white')" class="you">(you)</span>
+    </div>
+  </header>
+
+  <!-- Waiting room with the invite link -->
+  <div *ngIf="waitingForOpponent" class="waiting">
+    <p>Waiting for your opponent to join…</p>
+    <div *ngIf="shareToken" class="share">
+      <input type="text" readonly [value]="shareLink" (focus)="$any($event.target).select()" />
+      <button (click)="copyLink()">{{ linkCopied ? 'Copied!' : 'Copy link' }}</button>
+    </div>
+    <p *ngIf="shareToken" class="hint">Send this link to your opponent — it claims their seat.</p>
+  </div>
+
+  <div class="layout">
+    <section>
+      <div class="board" [class.disabled]="state.is_game_over || !isMyTurn">
+        <ng-container *ngFor="let row of board; let r = index">
+          <div
+            *ngFor="let cell of row; let c = index"
+            class="square"
+            [class.light]="(r + c) % 2 === 0"
+            [class.dark]="(r + c) % 2 === 1"
+            [class.selected]="isSelected(r, c)"
+            [class.last-move]="isLastMove(r, c)"
+            (click)="onSquareClick(r, c)"
+          >
+            <img *ngIf="cell" [src]="pieceImage(cell)" [alt]="cell" draggable="false" />
+            <span *ngIf="isLegalTarget(r, c)" class="target-dot" [class.capture]="!!cell"></span>
+            <span *ngIf="c === 0" class="coord rank">{{ rankLabel(r) }}</span>
+            <span *ngIf="r === 7" class="coord file">{{ fileLabel(c) }}</span>
+          </div>
+        </ng-container>
+      </div>
+    </section>
+
+    <aside class="side-panel">
+      <label class="toggle">
+        <input type="checkbox" [(ngModel)]="showLegalMoves" (change)="clearSelection()" />
+        Show Legal Moves
+      </label>
+
+      <div class="status">
+        <p *ngIf="!state.is_game_over">
+          Turn: <strong>{{ nameOf(state.turn) }}</strong>
+          <span *ngIf="state.in_check" class="check-badge">check!</span>
+        </p>
+        <p *ngIf="message" class="message">{{ message }}</p>
+        <p *ngIf="error" class="error">{{ error }}</p>
+      </div>
+
+      <div class="actions">
+        <button *ngIf="state.mode === 'local'" (click)="undo()" [disabled]="loading || state.move_count === 0">
+          &#8630; Undo
+        </button>
+        <a routerLink="/pvp"><button type="button">New Two-Player Game</button></a>
+        <a routerLink="/library"><button type="button">Game Library</button></a>
+      </div>
+
+      <div class="pgn" *ngIf="state.pgn">
+        <h3>Moves</h3>
+        <p>{{ state.pgn }}</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<ng-template #loadingTpl>
+  <p *ngIf="error" class="error">{{ error }}</p>
+  <p *ngIf="!error">Loading…</p>
+</ng-template>

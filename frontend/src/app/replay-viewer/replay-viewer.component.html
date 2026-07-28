@@ -1,0 +1,39 @@
+<div class="replay" *ngIf="replay; else loadingOrError">
+  <h2>Replay — Game #{{ replay.game_id }}</h2>
+
+  <div class="layout">
+    <section>
+      <div class="board readonly">
+        <ng-container *ngFor="let row of board; let r = index">
+          <div
+            *ngFor="let cell of row; let c = index"
+            class="square"
+            [class.light]="(r + c) % 2 === 0"
+            [class.dark]="(r + c) % 2 === 1"
+          >
+            <img *ngIf="cell" [src]="pieceImage(cell)" [alt]="cell" draggable="false" />
+          </div>
+        </ng-container>
+      </div>
+
+      <div class="controls">
+        <button (click)="toStart()" [disabled]="index === -1">|&laquo;</button>
+        <button (click)="previous()" [disabled]="index === -1">&laquo; Previous Move</button>
+        <span class="label">{{ currentLabel }}</span>
+        <button (click)="next()" [disabled]="index >= replay.moves.length - 1">Next Move &raquo;</button>
+        <button (click)="toEnd()" [disabled]="index >= replay.moves.length - 1">&raquo;|</button>
+      </div>
+    </section>
+
+    <aside>
+      <h3>Moves</h3>
+      <p class="pgn">{{ replay.pgn || '(no moves)' }}</p>
+      <a routerLink="/library"><button>Back to Library</button></a>
+    </aside>
+  </div>
+</div>
+
+<ng-template #loadingOrError>
+  <p *ngIf="error" class="error">{{ error }}</p>
+  <p *ngIf="!error">Loading…</p>
+</ng-template>
