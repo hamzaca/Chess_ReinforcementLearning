@@ -2,32 +2,103 @@
   box-sizing: border-box;
 }
 
+/* Light, smooth theme — Lichess-style layout with soft warm colors. */
+:root {
+  --bg: #f3f0e9;
+  --panel: #ffffff;
+  --panel-soft: #faf8f3;
+  --border: #e5dfd2;
+  --text: #43403a;
+  --muted: #948d7e;
+  --accent: #b48a4a;
+  --green: #829f5e;
+  --green-dark: #6d8a4b;
+  --green-soft: #eef3e4;
+  --red: #c9705f;
+  --red-soft: #f9ece9;
+  --shadow: 0 2px 14px rgba(96, 84, 59, 0.1);
+  --radius: 12px;
+  --board-light: #f0d9b5;
+  --board-dark: #b58863;
+}
+
 body {
   margin: 0;
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background: #1f1d1a;
-  color: #eae6df;
+  background: var(--bg);
+  color: var(--text);
 }
 
 a {
-  color: #d7b36a;
+  color: var(--accent);
 }
 
 button {
   font: inherit;
   cursor: pointer;
-  border: 1px solid #6b6257;
-  border-radius: 6px;
-  background: #35312b;
-  color: #eae6df;
-  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  padding: 0.5rem 1rem;
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
 }
 
 button:hover:not(:disabled) {
-  background: #46403a;
+  background: var(--panel-soft);
+  box-shadow: var(--shadow);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 button:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: default;
+}
+
+button.primary {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+  font-weight: 600;
+}
+
+button.primary:hover:not(:disabled) {
+  background: var(--green-dark);
+}
+
+button.danger {
+  color: var(--red);
+  border-color: #ecd3ca;
+}
+
+button.danger:hover:not(:disabled) {
+  background: var(--red-soft);
+}
+
+input,
+select {
+  font: inherit;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+}
+
+input:focus,
+select:focus {
+  outline: 2px solid var(--green-soft);
+  border-color: var(--green);
+}
+
+/* Soft white card used across pages. */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem 1.1rem;
 }

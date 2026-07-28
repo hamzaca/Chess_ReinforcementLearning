@@ -412,6 +412,144 @@ def test_pvp_games_do_not_hijack_agent_current_game(client):
     assert games[agent_game["game_id"]]["mode"] == "agent"
 
 
+def test_structured_logs_status_and_actor(client):
+    """Every persisted log entry carries status + actor; the agent's entry
+    names the engine/model; failed attempts are logged too."""
+    client.post("/api/games/new", json={"user_color": "white"})
+    game_id = client.get("/api/games/current").json()["game_id"]
+
+    # A failed (illegal) move is logged with status=failed.
+    client.post("/api/move", json={"from_square": "e2", "to_square": "e6"})
+    # A successful move triggers agent_move (ongoing) + two move entries.
+    client.post("/api/move", json={"from_square": "e2", "to_square": "e4"})
+
+    logs = client.get(f"/api/logs/?game_id={game_id}").json()
+    by_action = {}
+    for log in logs:
+        by_action.setdefault(log["action_type"], []).append(log["details"])
+
+    # Every entry has a status.
+    assert all("status" in d for details in by_action.values() for d in details)
+
+    # game_start: user actor, success.
+    assert by_action["game_start"][0]["actor"]["type"] == "user"
+    assert by_action["game_start"][0]["status"] == "success"
+
+    # Failed move recorded with reason.
+    failed = [d for d in by_action["move"] if d["status"] == "failed"]
+    assert failed and failed[0]["reason"] == "illegal_move"
+    assert failed[0]["actor"]["type"] == "user"
+
+    # Agent thinking episode: ongoing marker with the engine identifier...
+    assert by_action["agent_move"][0]["status"] == "ongoing"
+    assert "minimax" in by_action["agent_move"][0]["actor"]["model"]
+
+    # ...and the agent's actual move names the engine/model used.
+    agent_moves = [
+        d for d in by_action["move"]
+        if d["status"] == "success" and d["actor"]["type"] == "agent"
+    ]
+    assert agent_moves and agent_moves[0]["actor"]["model"].startswith("minimax")
+
+    # The user's move is attributed to a user actor with a name.
+    user_moves = [
+        d for d in by_action["move"]
+        if d["status"] == "success" and d["actor"]["type"] == "user"
+    ]
+    assert user_moves and user_moves[0]["actor"]["name"] == "User"
+
+
+def test_every_endpoint_call_is_logged(client):
+    """The access-log middleware persists an `api_call` row for every /api
+    request — reads, writes and failures alike."""
+    client.get("/api/game-state")
+    client.post("/api/possible-moves", json={"square": "e2"})
+    client.get("/api/games")
+    client.post("/api/move", json={"from_square": "a1", "to_square": "a5"})  # 400
+
+    logs = client.get("/api/logs/?scope=all&limit=200").json()
+    calls = [log["details"] for log in logs if log["action_type"] == "api_call"]
+    endpoints = {c["endpoint"] for c in calls}
+    assert {"game_state", "possible_moves", "list_games", "make_move"} <= endpoints
+
+    # Each row carries method, status code, duration and a success/failed status.
+    sample = calls[0]
+    assert {"endpoint", "method", "path", "status_code", "duration_ms"} <= set(sample)
+    failed_moves = [
+        c for c in calls if c["endpoint"] == "make_move" and c["status_code"] == 400
+    ]
+    assert failed_moves and failed_moves[0]["status"] == "failed"
+
+    # PvP routes carry their game_id.
+    local = client.post("/api/pvp/games", json={"mode": "local"}).json()
+    client.get(f"/api/pvp/games/{local['game_id']}/state")
+    logs = client.get("/api/logs/?scope=all&limit=50").json()
+    pvp_calls = [
+        log for log in logs
+        if log["action_type"] == "api_call"
+        and log["details"]["endpoint"] == "pvp_state"
+    ]
+    assert pvp_calls and pvp_calls[0]["game_id"] == local["game_id"]
+
+
+def test_abort_agent_game(client):
+    client.post("/api/games/new", json={"user_color": "white"})
+    client.post("/api/move", json={"from_square": "e2", "to_square": "e4"})
+
+    state = client.post("/api/abort").json()
+    assert state["is_game_over"] is True
+    assert state["result"] == "*"
+    aborted_id = state["game_id"]
+
+    # Logged with the reason, and no game in progress anymore.
+    logs = client.get(f"/api/logs/?game_id={aborted_id}").json()
+    overs = [log for log in logs if log["action_type"] == "game_over"]
+    assert overs and overs[-1]["details"]["reason"] == "aborted_by_user"
+    assert client.post("/api/abort").status_code == 409
+
+    # The next current-game call starts a fresh one.
+    fresh = client.get("/api/games/current").json()
+    assert fresh["game_id"] != aborted_id
+    assert fresh["created"] is True
+
+
+def test_abort_pvp_games(client):
+    # Local: abort from the shared screen, no token needed.
+    local = client.post("/api/pvp/games", json={"mode": "local"}).json()
+    state = client.post(f"/api/pvp/games/{local['game_id']}/abort").json()
+    assert state["is_game_over"] is True and state["result"] == "*"
+    # A finished game rejects moves and a second abort.
+    assert (
+        client.post(
+            f"/api/pvp/games/{local['game_id']}/move",
+            json={"from_square": "e2", "to_square": "e4"},
+        ).status_code
+        == 409
+    )
+    assert client.post(f"/api/pvp/games/{local['game_id']}/abort").status_code == 409
+
+    # Online: only a seated player may abort.
+    created = client.post(
+        "/api/pvp/games",
+        json={"mode": "online", "creator_name": "Hamza", "creator_color": "white"},
+    ).json()
+    game_id = created["game_id"]
+    assert client.post(f"/api/pvp/games/{game_id}/abort").status_code == 403
+    assert (
+        client.post(
+            f"/api/pvp/games/{game_id}/abort", headers={"X-Player-Token": "bogus"}
+        ).status_code
+        == 403
+    )
+    state = client.post(
+        f"/api/pvp/games/{game_id}/abort", headers={"X-Player-Token": created["token"]}
+    ).json()
+    assert state["is_game_over"] is True and state["result"] == "*"
+    logs = client.get(f"/api/logs/?game_id={game_id}").json()
+    overs = [log for log in logs if log["action_type"] == "game_over"]
+    assert overs and overs[-1]["details"]["reason"] == "aborted_by:Hamza"
+
+
 def test_full_game_scholars_mate(client):
     """Play out a forced sequence to exercise game-over handling."""
     client.post("/api/games/new")

@@ -9,7 +9,14 @@ from sqlmodel import Session, func, select
 from app.config import settings
 from app.database import get_session
 from app.models.sql_models import Game, Move, utcnow
-from app.observability.logger import GameLogger, get_game_logger
+from app.observability.logger import (
+    GameLogger,
+    get_game_logger,
+    player_actor,
+    system_actor,
+    user_actor,
+)
+from app.services.agent_memory import AgentMemoryService
 from app.services.chess_service import ChessService
 
 
@@ -38,7 +45,12 @@ class GameManager:
         """Return (game, created). Logs `resume` or `game_start`."""
         game = self.get_current_game()
         if game is not None:
-            self.logger.log("resume", game_id=game.id, details={"fen": game.current_fen})
+            self.logger.log(
+                "resume",
+                game_id=game.id,
+                actor=user_actor(),
+                details={"fen": game.current_fen, "user_color": game.user_color},
+            )
             return game, False
         return self._create_game(), True
 
@@ -74,7 +86,8 @@ class GameManager:
         self.logger.log(
             "game_start",
             game_id=game.id,
-            details={"fen": game.current_fen, "user_color": choice},
+            actor=user_actor(),
+            details={"fen": game.current_fen, "mode": "agent", "user_color": choice},
         )
         return game
 
@@ -127,6 +140,10 @@ class GameManager:
         self.session.commit()
         self.session.refresh(game)
 
+        # Stale agent plans/reasonings past the rewind point must not haunt
+        # the next prompt.
+        AgentMemoryService(self.session).forget_after(game.id, target)
+
         self.logger.log(
             "undo",
             game_id=game.id,
@@ -160,6 +177,7 @@ class GameManager:
         self.logger.log(
             "game_start",
             game_id=game.id,
+            actor=player_actor(white_name or black_name or "Player 1"),
             details={
                 "mode": mode,
                 "white_name": white_name,
@@ -187,7 +205,10 @@ class GameManager:
         self.session.commit()
         self.session.refresh(game)
         self.logger.log(
-            "player_join", game_id=game.id, player=name, details={"color": color}
+            "player_join",
+            game_id=game.id,
+            actor=player_actor(name, color),
+            details={"color": color},
         )
         return game
 
@@ -203,7 +224,8 @@ class GameManager:
         to_square: str,
         san: str,
         new_fen: str,
-        player: str,  # "User" | "Agent"
+        actor: dict,  # user_actor() / agent_actor(model) / player_actor(name, color)
+        extra_details: Optional[dict] = None,  # e.g. the LLM's reasoning/plan
     ) -> Move:
         # Collect history BEFORE adding the new move: autoflush would make a
         # later query see the pending row and duplicate its SAN in the PGN.
@@ -227,18 +249,21 @@ class GameManager:
         self.logger.log(
             "move",
             game_id=game.id,
-            player=player,
+            actor=actor,
             details={
                 "move_number": move.move_number,
                 "from": from_square,
                 "to": to_square,
                 "san": san,
                 "fen": new_fen,
+                **(extra_details or {}),
             },
         )
         return move
 
-    def finish_game(self, game: Game, *, result: str, reason: str = "") -> Game:
+    def finish_game(
+        self, game: Game, *, result: str, reason: str = "", actor: Optional[dict] = None
+    ) -> Game:
         game.is_completed = True
         game.result = result
         game.updated_at = utcnow()
@@ -248,7 +273,11 @@ class GameManager:
         details = {"result": result}
         if reason:
             details["reason"] = reason
-        self.logger.log("game_over", game_id=game.id, details=details)
+        self.logger.log(
+            "game_over", game_id=game.id, actor=actor or system_actor(), details=details
+        )
+        # Decisive agent games feed the opening book (no-op otherwise).
+        AgentMemoryService(self.session).update_book(game, self.moves_for(game.id))
         return game
 
     def toggle_favorite(self, game_id: int) -> Optional[Game]:
@@ -261,7 +290,10 @@ class GameManager:
         self.session.commit()
         self.session.refresh(game)
         self.logger.log(
-            "favorite_toggle", game_id=game.id, details={"is_favorite": game.is_favorite}
+            "favorite_toggle",
+            game_id=game.id,
+            actor=user_actor(),
+            details={"is_favorite": game.is_favorite},
         )
         return game
 

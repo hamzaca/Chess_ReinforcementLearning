@@ -42,6 +42,11 @@ export class ChessService {
     return this.http.post<GameState>(`${this.base}/undo`, { plies: plies ?? null });
   }
 
+  /** End the current agent game with no winner (result "*"). */
+  abortGame(): Observable<GameState> {
+    return this.http.post<GameState>(`${this.base}/abort`, {});
+  }
+
   listGames(favoritesOnly = false): Observable<GameSummary[]> {
     const params = new HttpParams().set('favorites_only', favoritesOnly);
     return this.http.get<GameSummary[]>(`${this.base}/games`, { params });
@@ -125,6 +130,14 @@ export class ChessService {
 
   pvpUndo(gameId: number): Observable<PvpState> {
     return this.http.post<PvpState>(`${this.base}/pvp/games/${gameId}/undo`, {});
+  }
+
+  pvpAbort(gameId: number, token?: string): Observable<PvpState> {
+    return this.http.post<PvpState>(
+      `${this.base}/pvp/games/${gameId}/abort`,
+      {},
+      this.tokenHeaders(token),
+    );
   }
 
   getLogs(gameId?: number): Observable<LogEntry[]> {

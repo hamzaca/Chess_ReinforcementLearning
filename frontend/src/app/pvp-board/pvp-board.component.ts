@@ -137,6 +137,8 @@ export class PvpBoardComponent implements OnInit, OnDestroy {
         return `Checkmate — ${state.black_name ?? 'Black'} wins!`;
       case '1/2-1/2':
         return 'Draw.';
+      case '*':
+        return 'Game aborted.';
       default:
         return 'Game over.';
     }
@@ -302,6 +304,27 @@ export class PvpBoardComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.loading = false;
         this.error = err.error?.detail ?? 'Nothing to undo.';
+      },
+    });
+  }
+
+  abort(): void {
+    if (this.loading || !this.state || this.state.is_game_over) {
+      return;
+    }
+    if (!confirm('Abort this game? It ends with no winner.')) {
+      return;
+    }
+    this.loading = true;
+    this.chess.pvpAbort(this.gameId, this.token ?? undefined).subscribe({
+      next: (state) => {
+        this.loading = false;
+        this.clearSelection();
+        this.applyState(state);
+      },
+      error: (err) => {
+        this.loading = false;
+        this.error = err.error?.detail ?? 'Could not abort the game.';
       },
     });
   }

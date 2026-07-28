@@ -1,3 +1,11 @@
+.library {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.25rem 1.5rem;
+}
+
 .library header {
   display: flex;
   align-items: center;
@@ -16,6 +24,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  color: var(--muted);
 }
 
 table {
@@ -28,19 +37,36 @@ th,
 td {
   text-align: left;
   padding: 0.6rem 0.75rem;
-  border-bottom: 1px solid #3c362f;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+tbody tr {
+  transition: background 0.15s ease;
+}
+
+tbody tr:hover {
+  background: var(--panel-soft);
 }
 
 .star {
   background: none;
   border: none;
   font-size: 1.3rem;
-  color: #6b6257;
+  color: var(--border);
   padding: 0 0.25rem;
+  box-shadow: none;
 }
 
 .star.on {
-  color: #d7b36a;
+  color: var(--accent);
 }
 
 .row-actions {
@@ -49,9 +75,9 @@ td {
 }
 
 .error {
-  color: #e08a7a;
+  color: var(--red);
 }
 
 .empty {
-  color: #b9b2a6;
+  color: var(--muted);
 }
