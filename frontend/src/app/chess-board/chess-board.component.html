@@ -1,4 +1,25 @@
 <div class="layout">
+  <!-- Left: game info + move list (Lichess-style side card) -->
+  <aside class="info-panel">
+    <div class="card meta">
+      <h2>Play vs Agent</h2>
+      <p class="colors">
+        You play <strong>{{ userColor }}</strong> — the agent plays
+        {{ userColor === 'white' ? 'black' : 'white' }}.
+      </p>
+      <label class="toggle">
+        <input type="checkbox" [(ngModel)]="showLegalMoves" (change)="clearSelection()" />
+        Show legal moves
+      </label>
+    </div>
+
+    <div class="card pgn" *ngIf="pgn">
+      <h3>Moves</h3>
+      <p>{{ pgn }}</p>
+    </div>
+  </aside>
+
+  <!-- Center: the board -->
   <section class="board-panel">
     <div class="board" [class.disabled]="isGameOver">
       <ng-container *ngFor="let row of board; let r = index">
@@ -13,50 +34,61 @@
         >
           <img *ngIf="cell" [src]="pieceImage(cell)" [alt]="cell" draggable="false" />
           <span *ngIf="isLegalTarget(r, c)" class="target-dot" [class.capture]="!!cell"></span>
-          <span *ngIf="c === 0" class="coord rank">{{ rankLabel(r) }}</span>
+          <span *ngIf="c === 7" class="coord rank">{{ rankLabel(r) }}</span>
           <span *ngIf="r === 7" class="coord file">{{ fileLabel(c) }}</span>
         </div>
       </ng-container>
     </div>
   </section>
 
+  <!-- Right: players, status and controls -->
   <aside class="side-panel">
-    <h2>Play vs Agent</h2>
-    <p class="colors">
-      You play <strong>{{ userColor }}</strong> — the agent plays
-      {{ userColor === 'white' ? 'black' : 'white' }}.
-    </p>
-
-    <label class="toggle">
-      <input type="checkbox" [(ngModel)]="showLegalMoves" (change)="clearSelection()" />
-      Show Legal Moves
-    </label>
-
-    <div class="status">
-      <p *ngIf="!isGameOver">
-        Turn: <strong>{{ turn }}</strong>
-        <span *ngIf="inCheck" class="check-badge">check!</span>
-      </p>
-      <p *ngIf="message" class="message">{{ message }}</p>
-      <p *ngIf="error" class="error">{{ error }}</p>
+    <div class="player-row">
+      <span class="dot" [class.on]="!isGameOver && turn !== userColor"></span>
+      <span class="pname">Agent</span>
+      <span class="tag">{{ userColor === 'white' ? 'black' : 'white' }}</span>
     </div>
 
-    <div class="actions">
-      <button (click)="undoMove()" [disabled]="loading || moveCount === 0" title="Take back your last move">
-        &#8630; Undo Move
-      </button>
-      <button (click)="undoToStart()" [disabled]="loading || moveCount === 0" title="Rewind to the start of the game">
-        |&#8630; Back to Start
-      </button>
-    </div>
-    <div class="actions">
-      <button (click)="newGame()" [disabled]="loading">Start New Game</button>
-      <a routerLink="/library"><button type="button">Game Library</button></a>
+    <div class="card control-card">
+      <div class="nav-bar">
+        <button
+          (click)="undoToStart()"
+          [disabled]="loading || moveCount === 0"
+          title="Rewind to the start of the game"
+        >
+          &#9198;
+        </button>
+        <button
+          (click)="undoMove()"
+          [disabled]="loading || moveCount === 0"
+          title="Take back your last move"
+        >
+          &#8630;
+        </button>
+      </div>
+
+      <div class="status">
+        <p *ngIf="!isGameOver" class="turn-line">
+          <strong>{{ turn }}</strong> to move
+          <span *ngIf="inCheck" class="check-badge">check!</span>
+        </p>
+        <p *ngIf="message" class="message">{{ message }}</p>
+        <p *ngIf="error" class="error">{{ error }}</p>
+      </div>
+
+      <div class="actions">
+        <button class="primary" (click)="newGame()" [disabled]="loading">New Game</button>
+        <button class="danger" (click)="abortGame()" [disabled]="loading || isGameOver">
+          Abort
+        </button>
+        <a routerLink="/library"><button type="button">Library</button></a>
+      </div>
     </div>
 
-    <div class="pgn" *ngIf="pgn">
-      <h3>Moves</h3>
-      <p>{{ pgn }}</p>
+    <div class="player-row">
+      <span class="dot" [class.on]="!isGameOver && turn === userColor"></span>
+      <span class="pname">You</span>
+      <span class="tag">{{ userColor }}</span>
     </div>
   </aside>
 </div>

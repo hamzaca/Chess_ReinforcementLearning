@@ -1,31 +1,37 @@
 <div class="pvp" *ngIf="state; else loadingTpl">
-  <!-- Player names banner on top -->
-  <header class="players">
-    <div class="player" [class.active]="!state.is_game_over && state.turn === 'black'">
-      <span class="swatch black"></span>
-      <span class="name">{{ nameOf('black') }}</span>
-      <span *ngIf="isYou('black')" class="you">(you)</span>
-    </div>
-    <span class="vs">vs</span>
-    <div class="player" [class.active]="!state.is_game_over && state.turn === 'white'">
-      <span class="swatch white"></span>
-      <span class="name">{{ nameOf('white') }}</span>
-      <span *ngIf="isYou('white')" class="you">(you)</span>
-    </div>
-  </header>
-
-  <!-- Waiting room with the invite link -->
-  <div *ngIf="waitingForOpponent" class="waiting">
-    <p>Waiting for your opponent to join…</p>
-    <div *ngIf="shareToken" class="share">
-      <input type="text" readonly [value]="shareLink" (focus)="$any($event.target).select()" />
-      <button (click)="copyLink()">{{ linkCopied ? 'Copied!' : 'Copy link' }}</button>
-    </div>
-    <p *ngIf="shareToken" class="hint">Send this link to your opponent — it claims their seat.</p>
-  </div>
-
   <div class="layout">
-    <section>
+    <!-- Left: game info, invite link, move list -->
+    <aside class="info-panel">
+      <div class="card meta">
+        <h2>{{ state.mode === 'online' ? 'Online Game' : 'Local Game' }}</h2>
+        <p class="colors">
+          {{ nameOf('white') }} vs {{ nameOf('black') }}
+        </p>
+        <label class="toggle">
+          <input type="checkbox" [(ngModel)]="showLegalMoves" (change)="clearSelection()" />
+          Show legal moves
+        </label>
+      </div>
+
+      <div *ngIf="waitingForOpponent" class="card waiting">
+        <p>Waiting for your opponent to join…</p>
+        <div *ngIf="shareToken" class="share">
+          <input type="text" readonly [value]="shareLink" (focus)="$any($event.target).select()" />
+          <button (click)="copyLink()">{{ linkCopied ? 'Copied!' : 'Copy link' }}</button>
+        </div>
+        <p *ngIf="shareToken" class="hint">
+          Send this link to your opponent — it claims their seat.
+        </p>
+      </div>
+
+      <div class="card pgn" *ngIf="state.pgn">
+        <h3>Moves</h3>
+        <p>{{ state.pgn }}</p>
+      </div>
+    </aside>
+
+    <!-- Center: the board -->
+    <section class="board-panel">
       <div class="board" [class.disabled]="state.is_game_over || !isMyTurn">
         <ng-container *ngFor="let row of board; let r = index">
           <div
@@ -39,39 +45,62 @@
           >
             <img *ngIf="cell" [src]="pieceImage(cell)" [alt]="cell" draggable="false" />
             <span *ngIf="isLegalTarget(r, c)" class="target-dot" [class.capture]="!!cell"></span>
-            <span *ngIf="c === 0" class="coord rank">{{ rankLabel(r) }}</span>
+            <span *ngIf="c === 7" class="coord rank">{{ rankLabel(r) }}</span>
             <span *ngIf="r === 7" class="coord file">{{ fileLabel(c) }}</span>
           </div>
         </ng-container>
       </div>
     </section>
 
+    <!-- Right: players (opponent on top, matching orientation) + controls -->
     <aside class="side-panel">
-      <label class="toggle">
-        <input type="checkbox" [(ngModel)]="showLegalMoves" (change)="clearSelection()" />
-        Show Legal Moves
-      </label>
-
-      <div class="status">
-        <p *ngIf="!state.is_game_over">
-          Turn: <strong>{{ nameOf(state.turn) }}</strong>
-          <span *ngIf="state.in_check" class="check-badge">check!</span>
-        </p>
-        <p *ngIf="message" class="message">{{ message }}</p>
-        <p *ngIf="error" class="error">{{ error }}</p>
+      <div
+        class="player-row"
+        [class.me]="isYou(orientation === 'white' ? 'black' : 'white')"
+      >
+        <span
+          class="dot"
+          [class.on]="!state.is_game_over && state.turn === (orientation === 'white' ? 'black' : 'white')"
+        ></span>
+        <span class="pname">{{ nameOf(orientation === 'white' ? 'black' : 'white') }}</span>
+        <span *ngIf="isYou(orientation === 'white' ? 'black' : 'white')" class="you">(you)</span>
+        <span class="tag">{{ orientation === 'white' ? 'black' : 'white' }}</span>
       </div>
 
-      <div class="actions">
-        <button *ngIf="state.mode === 'local'" (click)="undo()" [disabled]="loading || state.move_count === 0">
-          &#8630; Undo
-        </button>
-        <a routerLink="/pvp"><button type="button">New Two-Player Game</button></a>
-        <a routerLink="/library"><button type="button">Game Library</button></a>
+      <div class="card control-card">
+        <div class="status">
+          <p *ngIf="!state.is_game_over" class="turn-line">
+            <strong>{{ nameOf(state.turn) }}</strong> to move
+            <span *ngIf="state.in_check" class="check-badge">check!</span>
+          </p>
+          <p *ngIf="message" class="message">{{ message }}</p>
+          <p *ngIf="error" class="error">{{ error }}</p>
+        </div>
+
+        <div class="actions">
+          <button
+            *ngIf="state.mode === 'local'"
+            (click)="undo()"
+            [disabled]="loading || state.move_count === 0"
+            title="Take back the last half-move"
+          >
+            &#8630; Undo
+          </button>
+          <button class="danger" (click)="abort()" [disabled]="loading || state.is_game_over">
+            Abort
+          </button>
+        </div>
+        <div class="actions">
+          <a routerLink="/pvp"><button type="button">New Two-Player Game</button></a>
+          <a routerLink="/library"><button type="button">Library</button></a>
+        </div>
       </div>
 
-      <div class="pgn" *ngIf="state.pgn">
-        <h3>Moves</h3>
-        <p>{{ state.pgn }}</p>
+      <div class="player-row" [class.me]="isYou(orientation)">
+        <span class="dot" [class.on]="!state.is_game_over && state.turn === orientation"></span>
+        <span class="pname">{{ nameOf(orientation) }}</span>
+        <span *ngIf="isYou(orientation)" class="you">(you)</span>
+        <span class="tag">{{ orientation }}</span>
       </div>
     </aside>
   </div>

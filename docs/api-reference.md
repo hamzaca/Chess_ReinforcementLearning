@@ -54,6 +54,11 @@ playing Black, the agent replays its move). Reopens a finished game.
 Returns the same shape as `/api/game-state`. `409` when nothing to undo.
 Logged as action `undo`.
 
+### `POST /api/abort`
+Aborts the current agent game: no winner, `result "*"`, logged as
+`game_over` with reason `aborted_by_user`. `409` when no game is running.
+Returns the final game state.
+
 ### `POST /api/possible-moves`
 Body: `{square}`. Returns `{square, moves: ["e3", "e4", ...]}` — legal
 destinations from that square in the current game (empty for empty squares
@@ -91,13 +96,67 @@ games: the token must belong to the side to move (`403` unknown token,
 ### `POST /api/pvp/games/{id}/undo`
 Local games only — takes back exactly one half-move. `409` for online games.
 
+### `POST /api/pvp/games/{id}/abort`
+Ends the game with no winner (`result "*"`). Local games abort from the
+shared screen; online games require a seated player's `X-Player-Token`
+(`403` otherwise). The opponent sees the aborted state on their next poll.
+`409` if the game is already over.
+
 ## Logs
 
 ### `GET /api/logs/?game_id=<id>`
 Log entries for the given game (current game when omitted):
-`[{id, game_id, timestamp, action_type, details}]` with `action_type` one of
-`game_start | resume | move | favorite_toggle | game_over`. Move entries
-carry `{player, san, from, to, fen, move_number}` in `details`.
+`[{id, game_id, timestamp, action_type, details}]`.
+
+`action_type` catalog (see `app/observability/logger.py::ACTIONS`):
+`game_start | resume | move | agent_move | undo | abort | game_over |
+favorite_toggle | player_join | invite_expired | unauthorized`.
+
+Every entry's `details` carries:
+- `status`: `success` | `failed` (rejected attempts are logged too, with a
+  `reason` such as `illegal_move`, `not_your_turn`, `seat_taken`,
+  `invalid_player_token`, `nothing_to_undo`) | `ongoing` (`agent_move` marks
+  the agent starting to think; the following `move` entry concludes it).
+- `actor`: who did it — `{"type": "user", "name"}`,
+  `{"type": "player", "name", "color"}` (PvP),
+  `{"type": "agent", "name", "model"}` where `model` is the engine that
+  actually produced the move (`minimax(depth=2)` or `llm:<LLM_MODEL>` —
+  an LLM fallback is reported as minimax), or `{"type": "system"}`.
+- `player`: flat actor name (handy for quick filtering).
+- action-specific data (`san`, `from`, `to`, `fen`, `move_number`, `result`,
+  `reason`, ...). LLM agent moves additionally carry `reasoning` and `plan`
+  (the agent's rolling strategic plan — also persisted to the
+  `agent_memory` table and fed back into its next prompt).
+
+**Access log — every endpoint call is persisted.** An HTTP middleware writes
+one `api_call` entry for EVERY `/api/*` request (reads, writes and errors
+alike) with `{endpoint, method, path, status_code, duration_ms, query}` and
+`status: success|failed`; PvP routes carry their `game_id`. Fetch them with
+`GET /api/logs/?scope=all&limit=N` (newest first, default 500). Domain
+actions (`move`, `undo`, ...) are logged separately by the endpoints, so a
+user move produces both an `api_call` row and a `move` row.
+
+Note: online PvP clients poll state every ~2s, so `api_call` rows accumulate
+quickly — prune the `log` table periodically if that becomes a concern.
+
+## Agent memory (internal, no endpoints)
+
+The LLM agent remembers within and across games — all in the regular SQL
+database (no vector store; every lookup is exact-key):
+
+- **In-game** (`agent_memory` table): each LLM move stores its `plan` and
+  `reasoning`; the next prompt gets the latest plan + the last 3 reasonings,
+  so play stays coherent across moves and server restarts. Undo prunes
+  memory past the rewind point.
+- **Opening book** (`opening_book` table): decisive agent games fold the
+  agent's first ~10 moves into per-position win/loss counts (clock-stripped
+  FEN keys, so transpositions collapse). Lines with a positive score are
+  offered to the LLM as a prompt hint — never played blindly.
+
+The agent itself talks to any OpenAI-compatible endpoint (`LLM_BASE_URL`,
+`LLM_MODEL`, `ANTHROPIC_API_KEY` as bearer token); illegal or malformed
+replies are retried up to 2 times with the exact error fed back, then the
+local minimax takes over so a game can never stall.
 
 ## Misc
 

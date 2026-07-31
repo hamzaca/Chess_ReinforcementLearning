@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from sqlmodel import Session  # noqa: E402
 
 from app.database import engine, init_db  # noqa: E402
-from app.observability.logger import GameLogger  # noqa: E402
+from app.observability.logger import GameLogger, agent_actor, user_actor  # noqa: E402
 from app.services.chess_service import ChessService  # noqa: E402
 from app.services.game_manager import GameManager  # noqa: E402
 
@@ -37,7 +37,7 @@ def main() -> None:
                 to_square=to_sq,
                 san=outcome["san"],
                 new_fen=outcome["fen"],
-                player="User" if i % 2 == 0 else "Agent",
+                actor=user_actor() if i % 2 == 0 else agent_actor("seed-script"),
             )
             fen = outcome["fen"]
         manager.finish_game(game, result="1-0")

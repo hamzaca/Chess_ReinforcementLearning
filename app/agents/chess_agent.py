@@ -46,6 +46,11 @@ class ChessAgent:
     def __init__(self, depth: int = settings.agent_depth):
         self.depth = max(1, depth)
 
+    @property
+    def descriptor(self) -> str:
+        """Engine identifier used in structured logs."""
+        return f"minimax(depth={self.depth})"
+
     # ------------------------------------------------------------- public
 
     def select_move(
@@ -90,6 +95,7 @@ class ChessAgent:
             "to_square": chess.square_name(best_move.to_square),
             "promotion": chess.piece_symbol(best_move.promotion) if best_move.promotion else None,
             "uci": best_move.uci(),
+            "engine": self.descriptor,  # which engine actually produced the move
         }
 
     # ------------------------------------------------------------- search
